@@ -41,7 +41,7 @@
                                 <i class="fas fa-envelope icon" style="color: ; padding-left: 15px;"></i>
                                 <input id="correo" type="email" name="email" class="form-input" 
                                        style="background: transparent; color: #ffffff; border: none; padding: 10px; width: 80%; outline: none;"
-                                       value="{{ old('email') }}" placeholder="usuario@tuempresa.com" required autofocus>
+                                       value="{{ old('email') }}" placeholder="usuario@ragon.com.mx" required autofocus>
                             </div>
                             
                             @if ($errors->has('email'))
