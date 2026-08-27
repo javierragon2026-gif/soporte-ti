@@ -10,7 +10,7 @@ use BadChoice\Thrust\Controllers\ThrustController;
 
 class TicketsController extends Controller
 {
-public function index()
+    public function index()
     {
         // Consulta nativa ordenada por los más recientes con paginación
         $tickets = Ticket::with(['user', 'team'])
@@ -47,13 +47,15 @@ public function index()
             'title'     => 'required|min:3',
             'body'      => 'required',
             'team_id'   => 'nullable|exists:teams,id',
+            'status'    => 'nullable|integer'
         ]);
-        $ticket = Ticket::createAndNotify(request('requester'), request('title'), request('body'), request('tags'));
-        $ticket->updateStatus(request('status'));
 
-        if (request('team_id')) {
-            $ticket->assignToTeam(request('team_id'));
-        }
+        $ticket = Ticket::create([
+            'title'   => request('title'),
+            'body'    => request('body'),
+            'status'  => request('status', 1),
+            'team_id' => request('team_id')
+        ]);
 
         return redirect()->route('tickets.show', $ticket);
     }
@@ -76,7 +78,7 @@ public function index()
             //'title'      => 'required|min:3',
         ]);
         $ticket->updateWith(request('requester'), request('priority'), request('type'))
-                ->updateSummary(request('subject'), request('summary'));
+            ->updateSummary(request('subject'), request('summary'));
 
         return back();
     }

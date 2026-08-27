@@ -60,6 +60,10 @@ Route::group(['prefix' => 'cliente'], function () {
 // ---------------------------------------------------------
 Route::group(['middleware' => ['auth']], function () {
 
+    Route::get('/welcome', function () {
+        return view('welcome');
+    })->name('dashboard');
+
     // Perfil de Usuario
     Route::get('perfil', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
