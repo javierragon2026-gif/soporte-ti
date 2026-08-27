@@ -1,0 +1,58 @@
+/* =========================================
+   ESTILOS BASE Y BARRA LATERAL (SIDEBAR)
+========================================= */
+
+/* Fondo general de la aplicación (Gris muy claro para descansar la vista) */
+body {
+    background-color: #F4F6F9;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* El menú lateral (Sidebar) con tu Azul corporativo */
+.sidebar {
+    background-color: #67768A;
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px 15px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+/* Títulos dentro del menú (ej. "admin.admin") */
+.sidebar h4 {
+    color: #F4A637; /* Tu naranja de acento */
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+/* Quitar los puntos feos de las listas que salen en tu imagen */
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Estilos de los enlaces del menú */
+.sidebar ul li a {
+    color: #D1D8E0;
+    text-decoration: none;
+    display: block;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+/* Efecto hover al pasar el mouse por el menú */
+.sidebar ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #F4A637;
+    transform: translateX(5px);
+}

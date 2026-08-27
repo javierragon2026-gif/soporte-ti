@@ -1,0 +1,53 @@
+/* =========================================
+   PANEL DE CONTROL Y TARJETAS (DASHBOARD)
+========================================= */
+
+/* Tarjetas modernas sin bordes y con sombra suave */
+.card {
+    border: none !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Pequeño efecto al pasar el mouse sobre las tarjetas métricas */
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Botón corporativo principal */
+.btn-ragon-modern {
+    background-color: #F4A637;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+
+.btn-ragon-modern:hover {
+    background-color: #d68b25; /* Naranja ligeramente más oscuro */
+    color: white;
+}
+
+/* Tablas modernas para los tickets recientes */
+.table-hover tbody tr:hover {
+    background-color: rgba(244, 166, 55, 0.05) !important;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e0e4e8;
+}
+
+/* Badges (Etiquetas de estado como "Abierto", "Cerrado") */
+.badge {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
