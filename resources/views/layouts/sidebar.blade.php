@@ -33,7 +33,7 @@
             'url' => route('teams.index'),
             'title' => trans_choice('team.team', 2),
         ])
-        @if (auth()->user()->admin)
+        @if (auth()->user()?->admin)
             @include('components.sidebarItem', [
                 'url' => route('users.index'),
                 'title' => trans_choice('ticket.user', 2),
