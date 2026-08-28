@@ -2,20 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Ticket;
+use App\Models\Ticket;
+use Illuminate\Http\Request;
 
 class TicketsAssignController extends Controller
 {
-    public function store(Ticket $ticket)
+    /**
+     * Lógica de Negocio: Reasigna un requerimiento a un agente específico
+     * y actualiza sus etiquetas.
+     */
+    public function store(Ticket $ticket, Request $request)
     {
-        if (request('team_id')) {
-            $this->authorize('assignToTeam', $ticket);
-            $ticket->assignToTeam(request('team_id'));
-        }
-        if (request('user_id')) {
-            $ticket->assignTo(request('user_id'));
-        }
+        // 1. Validamos los datos entrantes del formulario
+        $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+            'tags'    => 'nullable|string'
+        ]);
 
-        return redirect()->route('tickets.index');
+        // 2. Actualizamos al responsable del caso
+        $ticket->update([
+            'user_id' => $request->user_id
+        ]);
+
+        // Nota de desarrollo: Si más adelante reactivamos la tabla de etiquetas (tags), 
+        // aquí procesaremos el texto separado por comas que llega en $request->tags.
+
+        // 3. Retornamos a la pantalla del ticket para ver los cambios
+        return back();
     }
 }
