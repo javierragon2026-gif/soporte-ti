@@ -6,12 +6,12 @@
         <span class="date">{{  $ticket->created_at->diffForHumans() }} · {{  $ticket->requester->name }}</span>
     </div>
 
-    @if($ticket->status != App\Ticket::STATUS_CLOSED)
+    @if($ticket->status != use App\Models\Ticket;::STATUS_CLOSED)
         <div class="comment new-comment">
             {{ Form::open(["url" => route("requester.comments.store",$ticket->public_token)]) }}
             <textarea name="body"></textarea>
             <br>
-            @if($ticket->status == App\Ticket::STATUS_SOLVED)
+            @if($ticket->status == use App\Models\Ticket;::STATUS_SOLVED)
                 {{ __('ticket.reopen') }} ? {{ Form::checkbox('reopen') }}
             @else
                 {{ __('ticket.isSolvedQuestion') }} {{ Form::checkbox('solved') }}

@@ -2,22 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use App\Attachment;
-use App\Ticket;
+use App\Models\Attachment;
+use App\Models\Ticket;
+use Illuminate\Http\Request;
 
 class CommentsController extends Controller
 {
-    public function store(Ticket $ticket)
+    /**
+     * Guarda un comentario o nota en un ticket.
+     */
+    public function store(Request $request, Ticket $ticket)
     {
         $this->authorize('view', $ticket);
 
-        if (request('private')) {
-            $comment = $ticket->addNote(auth()->user(), request('body'));
-        } else {
-            $comment = $ticket->addComment(auth()->user(), request('body'), request('new_status'));
+        /*
+         * Validamos los datos recibidos.
+         */
+        $request->validate([
+            'body' => ['required', 'string'],
+            'new_status' => ['nullable'],
+            'private' => ['nullable', 'boolean'],
+            'attachment' => ['nullable', 'file', 'max:10240'],
+        ]);
+
+        /*
+         * Si es una nota privada.
+         */
+        if ($request->boolean('private')) {
+            $comment = $ticket->addNote(
+                auth()->user(),
+                $request->input('body')
+            );
         }
-        if ($comment && request()->hasFile('attachment')) {
-            Attachment::storeAttachmentFromRequest(request(), $comment);
+
+        /*
+         * Si es un comentario público.
+         */
+        else {
+            $comment = $ticket->addComment(
+                auth()->user(),
+                $request->input('body'),
+                $request->input('new_status')
+            );
+        }
+
+        /*
+         * Guardamos el archivo adjunto si existe.
+         */
+        if ($comment && $request->hasFile('attachment')) {
+            Attachment::storeAttachmentFromRequest(
+                $request,
+                $comment
+            );
         }
 
         return redirect()->route('tickets.index');

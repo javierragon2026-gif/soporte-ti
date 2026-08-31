@@ -6,7 +6,7 @@ use App\Events\TicketStatusUpdated;
 use App\Kpi\Kpi;
 use App\Kpi\ReopenedKpi;
 use App\Kpi\SolveKpi;
-use App\Ticket;
+use App\Models\Ticket;
 use Carbon\Carbon;
 
 class UpdateStatusKpis

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Ticket;
-
+use App\Models\Ticket;
 class TicketsEscalateController extends Controller
 {
     public function store(Ticket $ticket)

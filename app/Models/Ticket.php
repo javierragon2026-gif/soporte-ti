@@ -9,7 +9,12 @@ class Ticket extends Model
 {
     use HasFactory;
 
-    // Constantes de estado para las vistas
+    /*
+    |--------------------------------------------------------------------------
+    | Estados
+    |--------------------------------------------------------------------------
+    */
+
     public const STATUS_NEW = 1;
     public const STATUS_OPEN = 2;
     public const STATUS_PENDING = 3;
@@ -17,18 +22,24 @@ class Ticket extends Model
     public const STATUS_CLOSED = 5;
     public const STATUS_MERGED = 6;
 
-    /**
-     * Tabla asociada al modelo.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Configuración
+    |--------------------------------------------------------------------------
+    */
+
     protected $table = 'tickets';
 
-    /**
-     * Atributos asignables en masa.
-     */
     protected $guarded = [];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Relación: Un ticket pertenece al usuario asignado/creador.
+     * Usuario asignado/creador del ticket.
      */
     public function user()
     {
@@ -38,7 +49,7 @@ class Ticket extends Model
     }
 
     /**
-     * Relación: Un ticket puede pertenecer a un equipo.
+     * Equipo al que pertenece el ticket.
      */
     public function team()
     {
@@ -48,30 +59,112 @@ class Ticket extends Model
     }
 
     /**
-     * Lógica de Negocio: Verifica si el ticket ha sido escalado.
+     * Comentarios públicos del ticket.
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'ticket_id');
+    }
+
+    /**
+     * Notas privadas del ticket.
+     */
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'ticket_id');
+    }
+
+    /**
+     * Tickets fusionados.
+     */
+    public function mergedTickets()
+    {
+        return $this->belongsToMany(
+            Ticket::class,
+            'merged_tickets',
+            'ticket_id',
+            'merged_ticket_id'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Comentarios
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Agrega un comentario público al ticket.
+     *
+     * @param User $user
+     * @param string $body
+     * @param mixed $newStatus
+     * @return Comment
+     */
+    public function addComment($user, $body, $newStatus = null)
+    {
+        $comment = $this->comments()->create([
+            'user_id' => $user->id,
+            'body' => $body,
+            'new_status' => $newStatus,
+        ]);
+
+        /*
+         * Si se seleccionó un nuevo estado,
+         * actualizamos el ticket.
+         */
+        if ($newStatus !== null && $newStatus !== '') {
+            $this->update([
+                'status' => $newStatus,
+            ]);
+        }
+
+        return $comment;
+    }
+
+    /**
+     * Agrega una nota privada al ticket.
+     *
+     * @param User $user
+     * @param string $body
+     * @return Note
+     */
+    public function addNote($user, $body)
+    {
+        return $this->notes()->create([
+            'user_id' => $user->id,
+            'body' => $body,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lógica de negocio
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Verifica si el ticket ha sido escalado.
      */
     public function isEscalated()
     {
-        // Temporalmente devolvemos falso para evitar errores. 
-        // Más adelante puedes enlazar esto a una columna 'escalated' en tu BD si lo necesitas.
         return false;
     }
 
     /**
-     * Lógica de Negocio: Obtiene el ID del problema en repositorios de código.
+     * Obtiene el ID del problema en repositorios de código.
      */
     public function getIssueId()
     {
-        // Retornamos null ya que descartamos la integración con Bitbucket para este Helpdesk interno.
         return null;
     }
 
     /**
-     * Lógica de Negocio: Obtiene el nombre del estado en español.
+     * Obtiene el nombre del estado en español.
      */
     public function statusName()
     {
-        return match((int) $this->status) {
+        return match ((int) $this->status) {
             self::STATUS_NEW => 'Nuevo',
             self::STATUS_OPEN => 'Abierto',
             self::STATUS_PENDING => 'Pendiente',
@@ -83,11 +176,11 @@ class Ticket extends Model
     }
 
     /**
-     * Lógica de Negocio: Obtiene la prioridad en español.
+     * Obtiene la prioridad en español.
      */
     public function priorityName()
     {
-        return match((int) $this->priority) {
+        return match ((int) $this->priority) {
             1 => 'Baja',
             2 => 'Normal',
             3 => 'Alta',
@@ -96,19 +189,10 @@ class Ticket extends Model
     }
 
     /**
-     * Lógica de Negocio: Obtiene los requerimientos que han sido agrupados o fusionados con este.
-     */
-    public function mergedTickets()
-    {
-        return $this->belongsToMany(Ticket::class, 'merged_tickets', 'ticket_id', 'merged_ticket_id');
-    }
-
-    /**
-     * Lógica de Negocio: ¿Este ticket permite ediciones o nuevos comentarios?
+     * Indica si el ticket puede modificarse.
      */
     public function canBeEdited()
     {
-        // Un ticket cerrado ya no debe modificarse, a menos que sea reabierto por un agente.
         return $this->status != self::STATUS_CLOSED;
     }
 }

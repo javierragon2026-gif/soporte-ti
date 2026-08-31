@@ -4,7 +4,7 @@ namespace App\Listeners;
 
 use App\Events\TicketStatusUpdated;
 use App\Services\IssueCreator;
-use App\Ticket;
+use App\Models\Ticket;
 
 class UpdateIssueWithTicketStatus
 {

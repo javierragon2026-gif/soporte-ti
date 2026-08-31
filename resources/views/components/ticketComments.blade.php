@@ -1,5 +1,5 @@
     @foreach($comments as $comment)
-        @if($comment instanceof App\TicketEvent)
+        @if($comment instanceof use App\Models\Ticket;Event)
             @include('components.ticketEvent', ["event" => $comment])
         @else
             <div class="comment @if($comment->private) note @endif">

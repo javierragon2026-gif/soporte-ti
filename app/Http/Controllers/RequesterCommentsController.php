@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Ticket;
-
+use App\Models\Ticket;
 class RequesterCommentsController extends Controller
 {
     public function store($public_token)

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\IssueCreator;
-use App\Ticket;
+use use App\Models\Ticket;;
 
 class TicketsIssueController extends Controller
 {

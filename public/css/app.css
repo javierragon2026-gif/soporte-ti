@@ -9,3 +9,7 @@
 @import url('dashboard.css');
 
 /* Aquí puedes ir agregando más en el futuro, ej: @import url('tickets.css'); */
+
+@import url('tablas.css');
+
+@import url('tickets.css');

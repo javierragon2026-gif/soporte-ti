@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Ticket;
-use Illuminate\Http\Response;
+use App\Models\Ticket;use Illuminate\Http\Response;
 
 class RequesterTicketsController extends Controller
 {

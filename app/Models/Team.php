@@ -10,34 +10,32 @@ class Team extends Model
     use HasFactory;
 
     /**
-     * Nombre de la tabla en la base de datos.
-     * Nota: Si en el futuro decides renombrar la tabla a 'equipos_ti', 
-     * solo debes modificar esta línea.
+     * Enlace directo con la tabla original de Handesk.
+     * Si después decides renombrarla a 'equipos_ti', solo cambias este valor.
      */
     protected $table = 'teams';
 
     /**
-     * Atributos asignables en masa. 
-     * Se deja vacío para permitir inserciones rápidas durante el desarrollo.
+     * Desactivamos las protecciones de asignación masiva 
+     * para facilitar la inserción de datos en desarrollo.
      */
     protected $guarded = [];
 
     /**
-     * Lógica de Negocio: Un equipo de soporte atiende múltiples requerimientos.
+     * Lógica de Negocio: Un área o equipo de soporte atiende múltiples casos.
      */
     public function requerimientos()
     {
-        // Renombramos la función de 'tickets()' a 'requerimientos()' para hacerlo tuyo
-        return $this->hasMany(Ticket::class);
+        // Vinculamos usando tu modelo de Ticket moderno
+        return $this->hasMany(Ticket::class, 'team_id');
     }
 
     /**
-     * Lógica de Negocio: Personal (agentes) asignado a este equipo de trabajo.
-     * Conecta con la tabla pivote de membresías.
+     * Lógica de Negocio: Agentes de sistemas que pertenecen a este equipo.
+     * Utiliza la tabla pivote 'memberships' de la base original.
      */
-    public function miembros()
+    public function agentes()
     {
-        // Renombramos de 'members()' a 'miembros()'
         return $this->belongsToMany(User::class, 'memberships', 'team_id', 'user_id');
     }
 }

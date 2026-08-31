@@ -2,7 +2,7 @@
 <tr>
     <td>{{ trans_choice('team.team',1) }}:</td>
     <td>
-        @can("assignToTeam", new App\Ticket)
+        @can("assignToTeam", new use App\Models\Ticket;)
             {{ Form::select('team_id', createSelectArray( App\Team::all(), true), $team->id, ['class' => 'w100']) }}
         @else
             {{ Form::select('team_id', createSelectArray( auth()->user()->teams, false), $team->id,  ['class' => 'w100']) }}

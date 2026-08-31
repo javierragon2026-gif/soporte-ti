@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Ticket;
+use use App\Models\Ticket;;
 
 class TicketsMergeController extends Controller
 {

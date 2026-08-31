@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Requester;
-use App\Ticket;
+use use App\Models\Ticket;;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\App;
 

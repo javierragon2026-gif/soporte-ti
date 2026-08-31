@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Ticket;
+use use App\Models\Ticket;;
 use Illuminate\Http\Response;
 
 class AgentTicketCommentsController extends ApiController

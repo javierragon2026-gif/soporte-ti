@@ -1,0 +1,61 @@
+/* Estilos interactivos para la caja de comentarios y seguimiento */
+textarea#comment-text-area {
+    resize: vertical;
+    min-height: 120px;
+    transition: all 0.3s ease;
+}
+
+/* Efecto de enfoque corporativo (Naranja Ragon) */
+textarea#comment-text-area:focus {
+    border-color: #F4A637 !important;
+    box-shadow: 0 0 0 4px rgba(244, 166, 55, 0.15) !important;
+    background-color: #ffffff !important;
+    outline: none;
+}
+
+/* Estilización del Switch para Notas Privadas */
+.form-check-input {
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #F4A637 !important;
+    border-color: #F4A637 !important;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(244, 166, 55, 0.25) !important;
+}
+
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Animaciones para los botones de envío */
+button[type="submit"].btn {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button[type="submit"].btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(244, 166, 55, 0.3) !important;
+    filter: brightness(1.05);
+}
+
+/* Diseño para el selector de archivos adjuntos */
+input[type="file"]::file-selector-button {
+    background-color: #67768A;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-right: 12px;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background-color: #4a5568;
+}

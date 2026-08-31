@@ -1,3 +1,6 @@
+@extends('layouts.app')
+
+@section('content')
 @if ($ticket->canBeEdited())
     {{-- Llamada al panel de asignación que ya arreglamos --}}
     @include('components.assignActions', ['endpoint' => 'tickets', 'object' => $ticket])
@@ -53,3 +56,4 @@
         </form>
     </div>
 @endif
+@endsection

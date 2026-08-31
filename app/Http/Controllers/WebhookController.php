@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Authenticatable\Admin;
 use App\Idea;
-use App\TicketEvent;
+use use App\Models\Ticket;Event;
 
 class WebhookController extends Controller
 {
