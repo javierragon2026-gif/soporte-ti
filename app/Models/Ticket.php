@@ -195,4 +195,13 @@ class Ticket extends Model
     {
         return $this->status != self::STATUS_CLOSED;
     }
+
+    /**
+     * Lógica de Negocio: Busca un ticket utilizando su token público único (para invitados sin sesión).
+     * @param string $token
+     */
+    public static function findWithPublicToken($token)
+    {
+        return self::where('public_token', $token)->firstOrFail();
+    }
 }

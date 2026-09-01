@@ -82,4 +82,15 @@ class TicketsController extends Controller
 
         return back();
     }
+
+    public function crearCliente(\Illuminate\Http\Request $request)
+    {
+        // Si la URL no tiene categoría, mostramos el catálogo de módulos
+        if (!$request->has('categoria')) {
+            return view('cliente.tickets.crear');
+        }
+
+        // Si ya seleccionó una categoría (?categoria=SAP), cargamos el formulario
+        return view('cliente.tickets.formulario');
+    }
 }
