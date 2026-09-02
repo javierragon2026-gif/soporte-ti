@@ -38,11 +38,10 @@
                             </div>
                         </div>
 
-                        {{-- Descripción Restringida --}}
+                        {{-- Descripción WYSIWYG --}}
                         <div class="mb-4">
                             <label class="form-label text-muted small fw-bold text-danger">DESCRIPCIÓN DIRECTA DEL ERROR *</label>
-                            <textarea id="bodyTextarea" name="body" class="form-control form-control-lg bg-light border-0" rows="5" placeholder="Ej. Al intentar imprimir una factura en SAP, me sale el 'Error 504'. &#10;&#10;Por favor, omite historias largas. Ve directo al grano: qué intentabas hacer y qué falló." required></textarea>
-                            <small class="text-muted mt-1 d-block"><i class="fas fa-keyboard me-1"></i> <b>Tip:</b> Si tomaste una captura de pantalla, simplemente presiona <b>Ctrl+V</b> aquí mismo para adjuntarla de forma automática.</small>
+                            <textarea id="bodyTextarea" name="body" class="form-control form-control-lg bg-light border-0" rows="5" placeholder="Ej. Al intentar imprimir una factura en SAP, me sale el 'Error 504'." required></textarea>
                         </div>
 
                         <div class="row g-3 mb-4">
@@ -58,13 +57,12 @@
                             </div>
                             @endif
 
-                            {{-- Evidencia Adjunta con Previsualización --}}
+                            {{-- Evidencia Adjunta Clásica --}}
                             <div class="col-md-6">
-                                <label class="form-label text-muted small fw-bold">ADJUNTAR EVIDENCIA</label>
+                                <label class="form-label text-muted small fw-bold">O ADJUNTAR EVIDENCIA (OPCIONAL)</label>
                                 <input type="file" id="attachment" name="attachment" class="form-control form-control-lg bg-light border-0" accept="image/*">
-                                <span id="paste-success" class="text-success small fw-bold d-none mt-1"><i class="fas fa-check-circle me-1"></i> ¡Imagen capturada correctamente!</span>
+                                <span id="paste-success" class="text-success small fw-bold d-none mt-1"><i class="fas fa-check-circle me-1"></i> ¡Imagen capturada en adjunto!</span>
                                 
-                                {{-- Contenedor dinámico para la imagen pegada --}}
                                 <div id="preview-container" class="d-none mt-3 text-center">
                                     <img id="image-preview" src="" class="img-fluid shadow-sm" style="max-height: 140px; border-radius: 8px; border: 2px solid #61b0a5;">
                                 </div>
@@ -90,7 +88,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <style>
     .slot-blur { animation: slotBlur 0.05s infinite alternate; color: #64748b !important; }
     .slot-success { border-color: #10b981 !important; color: #10b981 !important; background: #f0fdf4 !important; box-shadow: 0 0 30px rgba(16, 185, 129, 0.4) !important; transform: scale(1.05); }
@@ -99,103 +97,118 @@
     .slot-btn { transition: all 0.2s ease; }
     .slot-btn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0) !important; }
     .form-control:focus { box-shadow: 0 0 0 3px rgba(244, 166, 55, 0.25); background-color: #ffffff !important; }
+    
+    /* Ajuste para los bordes del TinyMCE */
+    .tox-tinymce { border-radius: 8px !important; border: none !important; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
 </style>
+
+<!-- Inyección del Editor TinyMCE vía CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // 1. INICIALIZACIÓN DEL EDITOR WYSIWYG
+        tinymce.init({
+            selector: '#bodyTextarea',
+            plugins: 'image paste link lists',
+            toolbar: 'bold italic underline | numlist bullist | link image | undo redo',
+            menubar: false,
+            paste_data_images: true, // ESTO PERMITE PEGAR IMÁGENES CON CTRL+V DENTRO DEL EDITOR
+            height: 250,
+            setup: function (editor) {
+                editor.on('change', function () {
+                    tinymce.triggerSave(); // Fuerza a guardar el contenido HTML en el textarea original
+                });
+            }
+        });
+
         const form = document.getElementById('ticketForm');
         const casinoOverlay = document.getElementById('casino-overlay');
         const display = document.getElementById('big-slot-display');
         const slotMessage = document.getElementById('slot-message');
         const dulces = ["🍬", "🍭", "🍫", "🍩", "🧁", "🍪", "🍧", "🍨", "🍒", "🍓"];
 
-        // Lógica ROBUSTA para la previsualización del portapapeles
-        window.addEventListener('paste', function(e) {
+        // 2. MANTENEMOS EL EVENTO 'PASTE' PROTEGIDO POR SI CLICAN AFUERA DEL EDITOR
+        document.addEventListener('paste', function(e) {
+            // Si el usuario está pegando dentro del iFrame de TinyMCE, ignoramos esto para no estorbarle al WYSIWYG
+            if (e.target.closest('.tox-tinymce') || e.target.tagName === 'IFRAME') return;
+
             let fileInput = document.getElementById('attachment');
             let pasteSuccessMsg = document.getElementById('paste-success');
             let previewContainer = document.getElementById('preview-container');
             let imagePreview = document.getElementById('image-preview');
             
-            // 1. Obtenemos los items del portapapeles (no los files)
-            let items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            let blob = null;
+            if (!fileInput || !previewContainer || !imagePreview) return;
 
-            // 2. Buscamos si hay alguna imagen entre lo que se pegó
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf("image") === 0) {
-                    blob = items[i].getAsFile();
-                    break;
+            let clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+
+            let file = null;
+
+            if (clipboardData.items) {
+                for (let i = 0; i < clipboardData.items.length; i++) {
+                    if (clipboardData.items[i].type.indexOf("image") !== -1) {
+                        file = clipboardData.items[i].getAsFile();
+                        break;
+                    }
                 }
             }
 
-            // 3. Si encontramos una imagen cruda, la convertimos en un archivo real
-            if (blob !== null) {
-                // Le asignamos un nombre forzoso para que el input file lo acepte
-                let file = new File([blob], "captura_evidencia.png", { type: blob.type });
-
-                // Cargamos el archivo en el input oculto
+            if (file) {
+                let finalFile = new File([file], "evidencia_" + Date.now() + ".png", { type: file.type || 'image/png' });
                 let dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
+                dataTransfer.items.add(finalFile);
                 fileInput.files = dataTransfer.files;
                 
-                // Renderizamos la miniatura en pantalla
                 let reader = new FileReader();
                 reader.onload = function(event) {
                     imagePreview.src = event.target.result;
                     previewContainer.classList.remove('d-none');
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(finalFile);
                 
-                // Mostramos notificación verde
-                pasteSuccessMsg.classList.remove('d-none');
-                setTimeout(() => pasteSuccessMsg.classList.add('d-none'), 5000);
+                if (pasteSuccessMsg) {
+                    pasteSuccessMsg.classList.remove('d-none');
+                    setTimeout(() => pasteSuccessMsg.classList.add('d-none'), 5000);
+                }
             }
         });
 
-        // Soporte de vista previa si usan el botón "Examinar" en lugar de Ctrl+V
-        document.getElementById('attachment').addEventListener('change', function() {
-            let previewContainer = document.getElementById('preview-container');
-            let imagePreview = document.getElementById('image-preview');
-            
-            if (this.files && this.files[0] && this.files[0].type.startsWith('image/')) {
-                let reader = new FileReader();
-                reader.onload = function(event) {
-                    imagePreview.src = event.target.result;
-                    previewContainer.classList.remove('d-none');
-                };
-                reader.readAsDataURL(this.files[0]);
-            } else {
-                previewContainer.classList.add('d-none');
-            }
-        });
+        // 3. ANIMACIÓN DEL CASINO
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                form.classList.add('d-none');
+                if (casinoOverlay) {
+                    casinoOverlay.classList.remove('d-none');
+                    casinoOverlay.classList.add('d-flex');
+                }
+                if (display) display.classList.add("slot-blur");
 
-        // Animación del Casino
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            form.classList.add('d-none');
-            casinoOverlay.classList.remove('d-none');
-            casinoOverlay.classList.add('d-flex');
-            display.classList.add("slot-blur");
+                let spinInterval = setInterval(() => {
+                    let randomStr = "";
+                    for (let i = 0; i < 3; i++) { randomStr += dulces[Math.floor(Math.random() * dulces.length)]; }
+                    if (display) display.innerText = randomStr;
+                }, 40);
 
-            let spinInterval = setInterval(() => {
-                let randomStr = "";
-                for (let i = 0; i < 3; i++) { randomStr += dulces[Math.floor(Math.random() * dulces.length)]; }
-                display.innerText = randomStr;
-            }, 40);
+                setTimeout(() => {
+                    clearInterval(spinInterval);
+                    if (display) {
+                        display.classList.remove("slot-blur");
+                        display.classList.add("slot-success");
+                        const randomNum = String(Math.floor(Math.random() * 999)).padStart(3, '0');
+                        display.innerText = `TK-${randomNum}`;
+                    }
+                    if (slotMessage) {
+                        slotMessage.innerText = "¡BINGO! TICKET GENERADO";
+                        slotMessage.style.color = "#10b981";
+                        slotMessage.style.animation = "none"; 
+                    }
 
-            setTimeout(() => {
-                clearInterval(spinInterval);
-                display.classList.remove("slot-blur");
-                display.classList.add("slot-success");
-                const randomNum = String(Math.floor(Math.random() * 999)).padStart(3, '0');
-                display.innerText = `TK-${randomNum}`;
-                slotMessage.innerText = "¡BINGO! TICKET GENERADO";
-                slotMessage.style.color = "#10b981";
-                slotMessage.style.animation = "none"; 
-
-                setTimeout(() => { form.submit(); }, 1200);
-            }, 2500);
-        });
+                    setTimeout(() => { form.submit(); }, 1200);
+                }, 2500);
+            });
+        }
     });
 </script>
-@endsection
+@endpush

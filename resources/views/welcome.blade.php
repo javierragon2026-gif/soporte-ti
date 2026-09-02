@@ -10,7 +10,7 @@
             <p class="text-muted mb-0">Bienvenido de nuevo, <span class="fw-semibold" style="color: #F4A637;">{{ auth()->user()->name ?? 'Agente' }}</span></p>
         </div>
         <div class="mt-3 mt-md-0">
-            <a href="{{ route('tickets.create') }}" class="btn text-white px-4 py-2 shadow-sm" style="background-color: #F4A637; border-radius: 8px; font-weight: 600;">
+            <a href="{{ route('cliente.tickets.crear') }}" class="btn text-white px-4 py-2 shadow-sm" style="background-color: #F4A637; border-radius: 8px; font-weight: 600;">
                 <i class="fas fa-plus me-2"></i>Crear Ticket
             </a>
         </div>
