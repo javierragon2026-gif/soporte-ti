@@ -32,11 +32,12 @@ class LoginController extends Controller
     {
         // Si el usuario es parte del equipo de Sistemas (admin = 1)
         if ($user->admin) {
-            return redirect()->route('tickets.index');
+            //return redirect()->route('tickets.index');
+            return redirect('cliente/tickets/crear');
         }
 
         // Si es un usuario normal (admin = 0)
         // Ajusta esta URL a la ruta donde pondrás el catálogo de errores
-        return redirect('cliente/tickets/crear'); 
+        return redirect('cliente/tickets/crear');
     }
 }
