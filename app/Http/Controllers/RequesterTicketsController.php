@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ticket;use Illuminate\Http\Response;
+use App\Models\Ticket;
+use Illuminate\Http\Response;
 
 class RequesterTicketsController extends Controller
 {
@@ -22,5 +23,15 @@ class RequesterTicketsController extends Controller
         }
 
         return view('requester.tickets.rated', ['ticket' => $ticket]);
+    }
+
+    public function index()
+    {
+        // Consultamos únicamente mediante user_id
+        $tickets = Ticket::where('user_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('cliente.tickets.index', compact('tickets'));
     }
 }

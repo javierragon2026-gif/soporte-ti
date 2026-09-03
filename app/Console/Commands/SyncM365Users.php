@@ -29,7 +29,13 @@ class SyncM365Users extends Command
             ->get('https://graph.microsoft.com/v1.0/users?$select=displayName,mail,userPrincipalName,accountEnabled&$top=999');
 
         $dominios = ['ragon.com.mx', 'bise.com.mx'];
-        $sistemas = ['jramirez@ragon.com.mx']; // Agrega aquí los correos de tu departamento
+        $sistemas = [
+            'jeduardo@ragon.com.mx',
+            'jramirez@ragon.com.mx',
+            'analista.datos@ragon.com.mx',
+            'ricardo.mancilla@ragon.com.mx',
+            'rguzman@ragon.com.mx',
+        ];
 
         foreach ($graphResponse->json('value') as $apiUser) {
             if (!$apiUser['accountEnabled']) continue;
@@ -41,7 +47,7 @@ class SyncM365Users extends Command
                 ['email' => $email],
                 [
                     'name'     => $apiUser['displayName'] ?? explode('@', $email)[0],
-                    'password' => bcrypt(Str::random(16)), 
+                    'password' => bcrypt(Str::random(16)),
                     'admin'    => in_array($email, $sistemas) ? 1 : 0,
                 ]
             );
