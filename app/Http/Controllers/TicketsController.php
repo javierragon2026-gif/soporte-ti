@@ -40,24 +40,56 @@ class TicketsController extends Controller
         return view('tickets.create');
     }
 
-    public function store()
+    public function store(\Illuminate\Http\Request $request)
     {
-        $this->validate(request(), [
-            'requester' => 'required|array',
-            'title'     => 'required|min:3',
-            'body'      => 'required',
-            'team_id'   => 'nullable|exists:teams,id',
-            'status'    => 'nullable|integer'
+        // 1. Validar los datos esenciales
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'body'  => 'required|string',
         ]);
 
-        $ticket = Ticket::create([
-            'title'   => request('title'),
-            'body'    => request('body'),
-            'status'  => request('status', 1),
-            'team_id' => request('team_id')
+        $user = auth()->user();
+
+        // 2. Si el usuario no tiene AnyDesk, lo guardamos permanentemente
+        if (empty($user->anydesk) && $request->filled('anydesk')) {
+            $user->anydesk = $request->anydesk;
+            $user->save();
+        }
+
+        // 3. Crear el ticket real en la base de datos
+        $ticket = \App\Models\Ticket::create([
+            'title'   => $request->title,
+            'body'    => $request->body,
+            'status'  => 1, // Nuevo / Abierto
+            'user_id' => $user->id,
+            // Si agregas la columna categoría a la BD, descomenta la siguiente línea:
+            // 'categoria' => $request->categoria,
         ]);
 
-        return redirect()->route('tickets.show', $ticket);
+        // 4. Guardar múltiples archivos adjuntos si existen
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('attachments', 'public');
+                $ticket->attachments()->create([
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'user_id' => $user->id,
+                ]);
+            }
+        }
+
+        // 5. Si la petición es AJAX (nuestra máquina tragamonedas), devolver el ID secuencial
+        if ($request->ajax() || $request->wantsJson()) {
+            // Formatear el ID real (Ej. Si el id es 15, devolverá TK-0015)
+            $ticketIdFormatted = 'TK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
+
+            return response()->json([
+                'success' => true,
+                'ticket_id' => $ticketIdFormatted
+            ]);
+        }
+
+        return redirect()->route('dashboard');
     }
 
     public function reopen(Ticket $ticket)

@@ -30,14 +30,32 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
+        $administradoresTI = [
+            'jeduardo@ragon.com.mx',
+            'jramirez@ragon.com.mx',
+            'analista.datos@ragon.com.mx',
+            'ricardo.mancilla@ragon.com.mx',
+            'rguzman@ragon.com.mx',
+        ];
+
+        // 1. AUTO-CORRECCIÓN DE ROL: 
+        // Verifica en tiempo real si el correo está en la lista y actualiza la BD
+        $esAdmin = in_array(strtolower($user->email), $administradoresTI) ? 1 : 0;
+        
+        if ($user->admin != $esAdmin) {
+            $user->admin = $esAdmin;
+            $user->save();
+        }
+
+        // 2. REDIRECCIÓN INTELIGENTE
         // Si el usuario es parte del equipo de Sistemas (admin = 1)
-        if ($user->admin) {
-            return redirect()->route('welcome');
-            //return redirect('cliente/tickets/crear');
+        if ($user->admin == 1) {
+            // Mandamos a la ruta nombrada 'dashboard' (que carga la vista welcome)
+            return redirect()->route('dashboard');
         }
 
         // Si es un usuario normal (admin = 0)
-        // Ajusta esta URL a la ruta donde pondrás el catálogo de errores
-        return redirect('cliente/tickets/crear');
+        return redirect()->route('cliente.tickets.crear');
     }
 }
+

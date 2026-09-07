@@ -46,4 +46,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Verifica si el usuario pertenece al departamento de TI (Administrador)
+     */
+    public function isAdmin()
+    {
+        $adminEmails = [
+            'jeduardo@ragon.com.mx',
+            'jramirez@ragon.com.mx',
+            'analista.datos@ragon.com.mx',
+            'ricardo.mancilla@ragon.com.mx',
+            'rguzman@ragon.com.mx'
+        ];
+
+        return in_array($this->email, $adminEmails);
+    }
 }
