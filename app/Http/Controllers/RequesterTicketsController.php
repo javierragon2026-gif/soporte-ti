@@ -7,23 +7,32 @@ use Illuminate\Http\Response;
 
 class RequesterTicketsController extends Controller
 {
-    public function show($public_token)
+    public function show($id)
     {
-        $ticket = Ticket::findWithPublicToken($public_token);
+        // Buscamos el ticket por su ID y garantizamos que le pertenezca al usuario logueado
+        $ticket = \App\Models\Ticket::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
 
-        return view('requester.tickets.show', ['ticket' => $ticket]);
+        return view('cliente.tickets.show', ['ticket' => $ticket]);
     }
 
-    public function rate($public_token)
+    public function rate($id)
     {
-        $ticket = Ticket::findWithPublicToken($public_token);
+        // Misma validación de seguridad para la calificación
+        $ticket = \App\Models\Ticket::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
         $rated  = $ticket->rate(request('rating'));
+
         if (! $rated) {
-            app()->abort(Response::HTTP_UNPROCESSABLE_ENTITY, 'Could not rate this ticket');
+            app()->abort(\Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY, 'No se pudo calificar este ticket');
         }
 
-        return view('requester.tickets.rated', ['ticket' => $ticket]);
+        return back();
     }
+
 
     public function index()
     {

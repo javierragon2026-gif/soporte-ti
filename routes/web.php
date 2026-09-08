@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-
 use App\Http\Controllers\ProfileController;
 
 // Controladores para la vista del Usuario Final
@@ -55,6 +54,7 @@ Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEm
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 
+
 /*
 |--------------------------------------------------------------------------
 | ZONA GENERAL (Accesible para Usuarios Finales y Sistemas)
@@ -67,16 +67,22 @@ Route::group(['middleware' => ['auth']], function () {
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('contrasena', [ProfileController::class, 'password'])->name('profile.password');
 
-    // 1. Crear Ticket (Catálogo y Formulario)
-    Route::get('cliente/tickets/crear', [TicketsController::class, 'crearCliente'])->name('cliente.tickets.crear');
-    Route::get('cliente/tickets/nuevo', [TicketsController::class, 'formularioCliente'])->name('cliente.tickets.formulario');
-
-    // 2. Histórico de tickets del usuario conectado
+    // 1. Histórico de tickets del usuario conectado
     Route::get('mis-tickets', [RequesterTicketsController::class, 'index'])->name('cliente.tickets.index');
 
-    // 3. Seguimiento a detalle de un ticket específico
-    Route::get('mis-tickets/{ticket}', [RequesterTicketsController::class, 'show'])->name('cliente.tickets.show');
+    // 2. Grupo "Cliente": Estáticas arriba, dinámicas abajo para evitar colisiones
+    Route::group(['prefix' => 'cliente'], function () {
+        // Estáticas
+        Route::get('tickets/crear', [TicketsController::class, 'crearCliente'])->name('cliente.tickets.crear');
+        Route::get('tickets/nuevo', [TicketsController::class, 'formularioCliente'])->name('cliente.tickets.formulario');
+
+        // Dinámicas (Usando ID en lugar de Token)
+        Route::get('tickets/{ticket}', [RequesterTicketsController::class, 'show'])->name('cliente.tickets.show');
+        Route::post('tickets/{ticket}/comentarios', [RequesterCommentsController::class, 'store'])->name('requester.comments.store');
+        Route::get('tickets/{ticket}/calificar', [RequesterTicketsController::class, 'rate'])->name('requester.tickets.rate');
+    });
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -85,19 +91,18 @@ Route::group(['middleware' => ['auth']], function () {
 */
 Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], function () {
 
-    // Esta ruta no puede estar suelta afuera del grupo
     Route::get('/welcome', function () {
         return view('welcome');
     })->name('dashboard');
 
-    // Gestión de Tickets
+    // Gestión General de Tickets
     Route::get('tickets/fusionar', [TicketsMergeController::class, 'index'])->name('tickets.merge.index');
     Route::get('tickets/buscar/{text}', [TicketsSearchController::class, 'index'])->name('tickets.search');
     Route::resource('tickets', TicketsController::class)->except(['edit', 'destroy']);
 
     // Acciones específicas sobre un ticket
     Route::post('tickets/{ticket}/asignar', [TicketsAssignController::class, 'store'])->name('tickets.assign');
-    Route::post('tickets/{ticket}/comentarios', [CommentsController::class, 'store'])->name('comments.store');
+    Route::post('tickets/{ticket}/comentarios', [CommentsController::class, 'store'])->name('tickets.comments.store');
     Route::post('tickets/{ticket}/etiquetas', [TicketsTagsController::class, 'store'])->name('tickets.tags.store');
     Route::delete('tickets/{ticket}/etiquetas/{tag}', [TicketsTagsController::class, 'destroy'])->name('tickets.tags.destroy');
     Route::post('tickets/{ticket}/reabrir', [TicketsController::class, 'reopen'])->name('tickets.reopen');
@@ -126,15 +131,4 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
     // Reportes y Estadísticas
     Route::get('reportes', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('estadisticas', [ReportsController::class, 'analytics'])->name('reports.analytics');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Zona de Enlaces Públicos (Tokens para responder desde correo)
-|--------------------------------------------------------------------------
-*/
-Route::group(['prefix' => 'cliente'], function () {
-    Route::get('tickets/{token}', [RequesterTicketsController::class, 'show'])->name('requester.tickets.show');
-    Route::post('tickets/{token}/comentarios', [RequesterCommentsController::class, 'store'])->name('requester.comments.store');
-    Route::get('tickets/{token}/calificar', [RequesterTicketsController::class, 'rate'])->name('requester.tickets.rate');
 });

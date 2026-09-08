@@ -38,9 +38,6 @@ class Ticket extends Model
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Usuario asignado/creador del ticket.
-     */
     public function user()
     {
         return $this->belongsTo(User::class)->withDefault([
@@ -48,9 +45,6 @@ class Ticket extends Model
         ]);
     }
 
-    /**
-     * Equipo al que pertenece el ticket.
-     */
     public function team()
     {
         return $this->belongsTo(Team::class)->withDefault([
@@ -58,25 +52,16 @@ class Ticket extends Model
         ]);
     }
 
-    /**
-     * Comentarios públicos del ticket.
-     */
     public function comments()
     {
         return $this->hasMany(Comment::class, 'ticket_id');
     }
 
-    /**
-     * Notas privadas del ticket.
-     */
     public function notes()
     {
         return $this->hasMany(Note::class, 'ticket_id');
     }
 
-    /**
-     * Tickets fusionados.
-     */
     public function mergedTickets()
     {
         return $this->belongsToMany(
@@ -87,20 +72,20 @@ class Ticket extends Model
         );
     }
 
+    /**
+     * Relación de archivos adjuntos agregada para evitar el colapso (Error 500).
+     */
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Comentarios
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Agrega un comentario público al ticket.
-     *
-     * @param User $user
-     * @param string $body
-     * @param mixed $newStatus
-     * @return Comment
-     */
     public function addComment($user, $body, $newStatus = null)
     {
         $comment = $this->comments()->create([
@@ -109,10 +94,6 @@ class Ticket extends Model
             'new_status' => $newStatus,
         ]);
 
-        /*
-         * Si se seleccionó un nuevo estado,
-         * actualizamos el ticket.
-         */
         if ($newStatus !== null && $newStatus !== '') {
             $this->update([
                 'status' => $newStatus,
@@ -122,13 +103,6 @@ class Ticket extends Model
         return $comment;
     }
 
-    /**
-     * Agrega una nota privada al ticket.
-     *
-     * @param User $user
-     * @param string $body
-     * @return Note
-     */
     public function addNote($user, $body)
     {
         return $this->notes()->create([
@@ -143,25 +117,16 @@ class Ticket extends Model
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Verifica si el ticket ha sido escalado.
-     */
     public function isEscalated()
     {
         return false;
     }
 
-    /**
-     * Obtiene el ID del problema en repositorios de código.
-     */
     public function getIssueId()
     {
         return null;
     }
 
-    /**
-     * Obtiene el nombre del estado en español.
-     */
     public function statusName()
     {
         return match ((int) $this->status) {
@@ -175,9 +140,6 @@ class Ticket extends Model
         };
     }
 
-    /**
-     * Obtiene la prioridad en español.
-     */
     public function priorityName()
     {
         return match ((int) $this->priority) {
@@ -188,20 +150,9 @@ class Ticket extends Model
         };
     }
 
-    /**
-     * Indica si el ticket puede modificarse.
-     */
     public function canBeEdited()
     {
         return $this->status != self::STATUS_CLOSED;
     }
 
-    /**
-     * Lógica de Negocio: Busca un ticket utilizando su token público único (para invitados sin sesión).
-     * @param string $token
-     */
-    public static function findWithPublicToken($token)
-    {
-        return self::where('public_token', $token)->firstOrFail();
-    }
 }

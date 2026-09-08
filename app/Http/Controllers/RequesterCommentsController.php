@@ -3,16 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use Illuminate\Http\Request;
+
 class RequesterCommentsController extends Controller
 {
-    public function store($public_token)
+    /**
+     * Lógica de Negocio: Guarda un comentario del usuario final.
+     */
+    public function store($id)
     {
-        $ticket = Ticket::findWithPublicToken($public_token);
-        $ticket->addComment(null, request('body'), $this->getNewStatus());
+        // Buscamos el ticket directamente por su ID numérico
+        $ticket = Ticket::findOrFail($id);
+        
+        // CORRECCIÓN: Pasamos el usuario autenticado en vez de "null"
+        $ticket->addComment(auth()->user(), request('body'), $this->getNewStatus());
 
         return back();
     }
 
+    /**
+     * Determina el estado del ticket basándose en la solicitud.
+     */
     private function getNewStatus()
     {
         if (request('solved')) {
@@ -21,7 +32,7 @@ class RequesterCommentsController extends Controller
         if (request('reopen')) {
             return Ticket::STATUS_OPEN;
         }
-
+        
         return null;
     }
 }

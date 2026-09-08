@@ -269,7 +269,6 @@
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                tinymce.triggerSave(); // Forzamos guardar el HTML de TinyMCE al textarea
 
                 form.classList.add('d-none');
                 casinoOverlay.classList.remove('d-none');
@@ -286,10 +285,6 @@
 
                 try {
                     let formData = new FormData(form);
-                    // Adjuntamos los archivos del Drag & Drop
-                    for (let i = 0; i < dt.files.length; i++) {
-                        formData.append('attachments[]', dt.files[i]);
-                    }
 
                     let response = await fetch(form.action, {
                         method: 'POST',
@@ -302,24 +297,32 @@
 
                     let data = await response.json();
 
+                    // Si el servidor devolvió un error 500 o 422, lanzamos la excepción
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || "Error al procesar el ticket en el servidor.");
+                    }
+
                     clearInterval(spinInterval);
                     display.classList.remove("slot-blur");
                     display.classList.add("slot-success");
 
-                    // Muestra el ID real que devolvió Laravel
-                    display.innerText = data.ticket_id;
+                    // Leemos el folio asegurando compatibilidad con ambas claves
+                    display.innerText = data.ticket_id || data.ticket_code;
                     slotMessage.innerText = "¡TICKET ASIGNADO CORRECTAMENTE!";
                     slotMessage.style.color = "#10b981";
 
-                    // Redirigir al usuario final a su historial después de 2 segundos
                     setTimeout(() => {
-                        window.location.href = '{{ route('cliente.tickets.index') }}';
+                        window.location.href = data.redirect ||
+                            '{{ route('cliente.tickets.index') }}';
                     }, 2000);
+
                 } catch (error) {
                     clearInterval(spinInterval);
                     display.classList.remove("slot-blur");
                     display.innerText = "ERROR";
-                    slotMessage.innerText = "Error de conexión.";
+                    slotMessage.innerText = error.message;
+                    slotMessage.style.color = "#e74c3c";
+                    console.error("Fallo detallado:", error);
                 }
             });
         });
