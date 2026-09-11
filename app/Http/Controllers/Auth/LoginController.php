@@ -41,7 +41,7 @@ class LoginController extends Controller
         // 1. AUTO-CORRECCIÓN DE ROL: 
         // Verifica en tiempo real si el correo está en la lista y actualiza la BD
         $esAdmin = in_array(strtolower($user->email), $administradoresTI) ? 1 : 0;
-        
+
         if ($user->admin != $esAdmin) {
             $user->admin = $esAdmin;
             $user->save();
@@ -58,4 +58,3 @@ class LoginController extends Controller
         return redirect()->route('cliente.tickets.crear');
     }
 }
-

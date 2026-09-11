@@ -75,3 +75,99 @@
     color: white;
     box-shadow: 0 4px 10px rgba(244, 166, 55, 0.3);
 }
+
+/* ==================================================
+   TABLAS MODERNAS (ESTILO SAAS / HANDESK TI)
+================================================== */
+
+.custom-modern-table {
+    width: 100%;
+    background-color: #ffffff;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Encabezados de la tabla */
+.custom-modern-table thead th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+/* Filas y celdas */
+.custom-modern-table tbody td {
+    padding: 1.25rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.custom-modern-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.custom-modern-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* ==================================================
+   SOFT BADGES (PILLS) - ESTILO IMAGEN DE REFERENCIA
+================================================== */
+
+.badge-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.85rem;
+    border-radius: 50rem; /* Borde de píldora perfecto */
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* Badge Gris Claro (Usuarios / Sin iniciar) */
+.badge-user {
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 0.4rem 0.85rem;
+    border-radius: 50rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+}
+
+.badge-soft-gray {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Badge Rojo Suave (Contabilidad / Crítico) */
+.badge-soft-red {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Badge Verde Suave (Ventas / Soporte Técnico / En Proceso) */
+.badge-soft-green {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+/* Badge Azul Suave (Finanzas / Configuración / Finalizado) */
+.badge-soft-blue {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* Badge Amarillo/Naranja Suave (Desarrollo / En Espera) */
+.badge-soft-yellow {
+    background-color: #fef3c7;
+    color: #92400e;
+}

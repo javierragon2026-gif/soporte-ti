@@ -23,7 +23,7 @@
                 data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
                 <i class="fas fa-bars fa-lg" style="color: #F4A637;"></i>
             </button>
-            <a class="navbar-brand fw-bold mb-0" href="#">
+            <a class="navbar-brand fw-bold mb-0" href="/welcome">
                 Soporte TI Ragon
             </a>
         </div>
