@@ -82,6 +82,21 @@
             </a>
         </div>
 
+        <!-- Módulo: Home Office (Permisos y Préstamos) -->
+        <div class="col-md-6">
+            <a href="{{ route('cliente.home-office.create') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm border-0 p-4 position-relative card-hover" style="border-radius: 8px; border-left: 4px solid #F4A637 !important;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-laptop-house fa-2x me-4" style="color: #F4A637;"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1">Home Office</h5>
+                            <p class="text-muted mb-0 small">Solicitar permiso de equipo o préstamo (Responsiva)</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
         <!-- Módulo: Otros -->
         <div class="col-md-6">
             <a href="{{ route('cliente.tickets.crear', ['categoria' => 'OTROS']) }}" class="text-decoration-none text-dark">

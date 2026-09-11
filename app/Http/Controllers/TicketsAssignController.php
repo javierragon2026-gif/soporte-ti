@@ -16,13 +16,13 @@ class TicketsAssignController extends Controller
     {
         // 1. Validamos que los datos enviados cumplan con la estructura requerida
         $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'tags'    => 'nullable|string'
+            'agent_id' => 'nullable|exists:users,id',
+            'tags'     => 'nullable|string'
         ]);
 
         // 2. Actualizamos el responsable directo del requerimiento
         $ticket->update([
-            'user_id' => $request->user_id
+            'agent_id' => $request->agent_id
         ]);
 
         // 3. Redireccionamos de vuelta a la vista del detalle del ticket

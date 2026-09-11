@@ -13,13 +13,94 @@
                 </a>
             </div>
 
+            {{-- Tarjeta de Estado y Progreso del Ticket --}}
+            @php
+                $statusDesc = match((int) $ticket->status) {
+                    1 => 'Tu reporte fue recibido exitosamente y se encuentra en espera de asignación a un técnico.',
+                    2 => 'Un técnico de TI está atendiendo activamente tu requerimiento.',
+                    3 => 'Sistemas requiere información adicional de tu parte para poder continuar. Revisa las notas abajo.',
+                    4 => 'Tu ticket ha sido resuelto por el área de Sistemas. Si todo quedó en orden, no requieres hacer nada más.',
+                    5 => 'Este reporte ha sido cerrado formalmente en el sistema.',
+                    default => 'Estado en revisión operativa.'
+                };
+
+                $progressPercent = match((int) $ticket->status) {
+                    1 => 25,
+                    2 => 65,
+                    3 => 50,
+                    4 => 100,
+                    5 => 100,
+                    default => 25
+                };
+
+                $progressColor = match((int) $ticket->status) {
+                    1 => '#0284c7',
+                    2 => '#1d4ed8',
+                    3 => '#d97706',
+                    4 => '#047857',
+                    5 => '#67768A',
+                    default => '#61b0a5'
+                };
+            @endphp
+
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background: #ffffff;">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-3 border-bottom gap-2">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-satellite-dish me-1" style="color: #F4A637;"></i> Estado de tu Requerimiento
+                            </span>
+                            <h6 class="fw-bold mb-0 text-dark mt-1">
+                                {{ $statusDesc }}
+                            </h6>
+                        </div>
+                        <div>
+                            <span class="badge px-3 py-2 shadow-sm fw-bold" 
+                                  style="background-color: {{ $ticket->statusBadgeBg() }}; color: {{ $ticket->statusBadgeColor() }}; font-size: 0.95rem; border: 1px solid {{ $ticket->statusBadgeColor() }}33;">
+                                <i class="fas fa-circle me-1 small"></i> {{ $ticket->statusName() }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Barra de Progreso Visual --}}
+                    <div class="progress mb-4" style="height: 8px; border-radius: 4px; background-color: #f1f5f9;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                             style="width: {{ $progressPercent }}%; background-color: {{ $progressColor }};" 
+                             aria-valuenow="{{ $progressPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    {{-- Datos Operativos Reales --}}
+                    <div class="row g-3 text-secondary small">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="fas fa-headset me-1" style="color: #61b0a5;"></i> Técnico Asignado</span>
+                            <strong class="text-dark fs-6">
+                                @if($ticket->agent && $ticket->agent->id && $ticket->agent->name !== 'Sin asignar')
+                                    {{ $ticket->agent->name }}
+                                @else
+                                    <span class="text-muted fst-italic">Por asignar</span>
+                                @endif
+                            </strong>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="fas fa-tags me-1" style="color: #F4A637;"></i> Módulo / Categoría</span>
+                            <strong class="text-dark fs-6">{{ $ticket->categoria ?? 'Soporte General' }}</strong>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="fas fa-exclamation-circle me-1 text-danger"></i> Prioridad</span>
+                            <strong class="text-dark fs-6">{{ $ticket->priorityName() }}</strong>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="far fa-clock me-1 text-info"></i> Última Actualización</span>
+                            <strong class="text-dark fs-6">{{ $ticket->updated_at->format('d/m/Y h:i A') }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-header bg-white py-3 border-bottom-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="fw-bold mb-0 text-dark">TK-{{ str_pad($ticket->id, 4, '0', STR_PAD_LEFT) }}: {{ $ticket->title }}</h5>
-                        <span class="badge shadow-sm" style="background-color: {{ $ticket->status == 1 ? '#61b0a5' : ($ticket->status == 5 ? '#67768A' : '#F4A637') }}; font-size: 0.9rem;">
-                            {{ $ticket->statusName() }}
-                        </span>
                     </div>
                 </div>
                 <div class="card-body p-4 bg-light">

@@ -244,11 +244,11 @@
                             <!-- 4. Asignación (Agente TI) -->
                             <div class="mb-4">
                                 <label class="fw-bold text-muted small mb-2"><i class="fas fa-user-shield me-1"></i> ASIGNADO A</label>
-                                <select name="user_id" class="form-select border-0 shadow-sm fw-bold text-secondary"
+                                <select name="agent_id" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
                                     <option value="">Bandeja General (Sin asignar)</option>
                                     @foreach (\App\Models\User::where('admin', 1)->get() as $agente)
-                                        <option value="{{ $agente->id }}" {{ $ticket->user_id == $agente->id ? 'selected' : '' }}>
+                                        <option value="{{ $agente->id }}" {{ $ticket->agent_id == $agente->id ? 'selected' : '' }}>
                                             {{ $agente->name }}
                                         </option>
                                     @endforeach

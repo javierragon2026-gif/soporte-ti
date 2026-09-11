@@ -156,7 +156,7 @@ class TicketsController extends Controller
             'status'    => 'required|integer',
             'categoria' => 'nullable|string',
             'priority'  => 'required|integer',
-            'user_id'   => 'nullable|integer', // <-- Cambiado para validar al agente
+            'agent_id'  => 'nullable|integer', // <-- Cambiado para validar al agente sin afectar al creador (user_id)
         ]);
 
         // 2. Aplicamos los cambios al ticket
@@ -164,7 +164,7 @@ class TicketsController extends Controller
             'status'    => $request->status,
             'categoria' => $request->categoria,
             'priority'  => $request->priority,
-            'user_id'   => $request->user_id, // <-- Guardamos al responsable
+            'agent_id'  => $request->agent_id, // <-- Guardamos al responsable aquí
         ]);
 
         return back()->with('success', '¡El ticket ha sido actualizado y asignado!');

@@ -3,21 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-/* 
-|--------------------------------------------------------------------------
-| Importación de Controladores
-|--------------------------------------------------------------------------
-*/
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\ProfileController;
 
-// Controladores para la vista del Usuario Final
 use App\Http\Controllers\RequesterTicketsController;
 use App\Http\Controllers\RequesterCommentsController;
 
-// Controladores para la vista de Sistemas (Administradores)
 use App\Http\Controllers\TicketsMergeController;
 use App\Http\Controllers\TicketsSearchController;
 use App\Http\Controllers\TicketsController;
@@ -36,7 +29,6 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TicketTypesController;
 use App\Http\Controllers\ReportsController;
 
-// Redirección directa al login
 Route::redirect('/', '/login');
 
 /*
@@ -48,45 +40,45 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-// Rutas para recuperación de contraseña (públicas)
 Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
-
 
 /*
 |--------------------------------------------------------------------------
 | ZONA GENERAL (Accesible para Usuarios Finales y Sistemas)
 |--------------------------------------------------------------------------
 */
+// ¡LA SOLUCIÓN! Esta ruta debe ser pública para que cualquiera guarde tickets
+Route::post('tickets', [TicketsController::class, 'store'])->name('tickets.store');
+
 Route::group(['middleware' => ['auth']], function () {
 
-    // Perfil de Usuario
     Route::get('perfil', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('contrasena', [ProfileController::class, 'password'])->name('profile.password');
 
-    // 1. Histórico de tickets del usuario conectado
     Route::get('mis-tickets', [RequesterTicketsController::class, 'index'])->name('cliente.tickets.index');
 
-    // 2. Grupo "Cliente": Estáticas arriba, dinámicas abajo para evitar colisiones
     Route::group(['prefix' => 'cliente'], function () {
-        // Estáticas
         Route::get('tickets/crear', [TicketsController::class, 'crearCliente'])->name('cliente.tickets.crear');
         Route::get('tickets/nuevo', [TicketsController::class, 'formularioCliente'])->name('cliente.tickets.formulario');
 
-        // Dinámicas (Usando ID en lugar de Token)
         Route::get('tickets/{ticket}', [RequesterTicketsController::class, 'show'])->name('cliente.tickets.show');
         Route::post('tickets/{ticket}/comentarios', [RequesterCommentsController::class, 'store'])->name('requester.comments.store');
         Route::get('tickets/{ticket}/calificar', [RequesterTicketsController::class, 'rate'])->name('requester.tickets.rate');
+        
+        // Home Office Cliente
+        Route::get('home-office', [\App\Http\Controllers\Cliente\HomeOfficeController::class, 'index'])->name('cliente.home-office.index');
+        Route::get('home-office/solicitar', [\App\Http\Controllers\Cliente\HomeOfficeController::class, 'create'])->name('cliente.home-office.create');
+        Route::post('home-office', [\App\Http\Controllers\Cliente\HomeOfficeController::class, 'store'])->name('cliente.home-office.store');
     });
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| ZONA PRIVADA DE SISTEMAS (Protegida solo para Administradores de TI)
+| ZONA PRIVADA DE SISTEMAS (Solo Administradores de TI)
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], function () {
@@ -95,12 +87,12 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
         return view('welcome');
     })->name('dashboard');
 
-    // Gestión General de Tickets
     Route::get('tickets/fusionar', [TicketsMergeController::class, 'index'])->name('tickets.merge.index');
     Route::get('tickets/buscar/{text}', [TicketsSearchController::class, 'index'])->name('tickets.search');
-    Route::resource('tickets', TicketsController::class)->except(['edit', 'destroy']);
+    
+    // Le quitamos 'store' al resource porque ya lo declaramos arriba para todos
+    Route::resource('tickets', TicketsController::class)->except(['store', 'edit', 'destroy']);
 
-    // Acciones específicas sobre un ticket
     Route::post('tickets/{ticket}/asignar', [TicketsAssignController::class, 'store'])->name('tickets.assign');
     Route::post('tickets/{ticket}/comentarios', [CommentsController::class, 'store'])->name('tickets.comments.store');
     Route::post('tickets/{ticket}/etiquetas', [TicketsTagsController::class, 'store'])->name('tickets.tags.store');
@@ -109,26 +101,33 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
     Route::post('tickets/{ticket}/escalar', [TicketsEscalateController::class, 'store'])->name('tickets.escalate.store');
     Route::delete('tickets/{ticket}/escalar', [TicketsEscalateController::class, 'destroy'])->name('tickets.escalate.destroy');
 
-    // Directorio de Usuarios (Externos) y Adjuntos
     Route::get('clientes', [RequestersController::class, 'index'])->name('requesters.index');
     Route::get('adjuntos/{filename}', [AttachmentsController::class, 'show'])->name('attachments');
     Route::resource('tareas', TasksController::class)->only(['index', 'update', 'destroy']);
 
-    // Gestión de Equipos de TI
     Route::resource('equipos', TeamsController::class)->names('teams');
     Route::get('equipos/{team}/agentes', [TeamAgentsController::class, 'index'])->name('teams.agents');
     Route::get('equipos/{token}/unirse', [TeamMembershipController::class, 'index'])->name('membership.index');
     Route::post('equipos/{token}/unirse', [TeamMembershipController::class, 'store'])->name('membership.store');
     Route::get('equipos-eliminar/{data}', [TeamsController::class, 'delete'])->name('teams.delete');
 
-    // Módulos de Configuración Global (Supervisores)
     Route::resource('usuarios', UsersController::class)->only(['index', 'destroy', 'create'])->names('users');
     Route::post('usuarios/guardar', [UsersController::class, 'store'])->name('user.store');
     Route::get('usuarios/{user}/suplantar', [UsersController::class, 'impersonate'])->name('users.impersonate');
     Route::resource('configuracion', SettingsController::class)->only(['edit', 'update'])->names('settings');
     Route::get('tipos-de-ticket', [TicketTypesController::class, 'index'])->name('ticketTypes.index');
 
-    // Reportes y Estadísticas
     Route::get('reportes', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('estadisticas', [ReportsController::class, 'analytics'])->name('reports.analytics');
+    
+    // Home Office y Control de Equipos - Admin
+    Route::resource('inventario-equipos', \App\Http\Controllers\Admin\DeviceController::class)->names('admin.devices');
+    
+    Route::get('home-office', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'index'])->name('admin.home-office.index');
+    Route::get('home-office/{homeOffice}', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'show'])->name('admin.home-office.show');
+    Route::get('home-office/{homeOffice}/editar', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'edit'])->name('admin.home-office.edit');
+    Route::put('home-office/{homeOffice}', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'update'])->name('admin.home-office.update');
+    Route::delete('home-office/{homeOffice}', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'destroy'])->name('admin.home-office.destroy');
+    Route::post('home-office/{homeOffice}/aprobar', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'approve'])->name('admin.home-office.approve');
+    Route::post('home-office/{homeOffice}/checkin', [\App\Http\Controllers\Admin\HomeOfficeController::class, 'checkin'])->name('admin.home-office.checkin');
 });

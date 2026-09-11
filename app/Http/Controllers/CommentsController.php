@@ -23,6 +23,7 @@ class CommentsController extends Controller
             'new_status' => ['nullable'],
             'private' => ['nullable', 'boolean'],
             'attachment' => ['nullable', 'file', 'max:10240'],
+            'attachments.*' => ['nullable', 'file', 'max:10240'],
         ]);
 
         /*
@@ -47,15 +48,24 @@ class CommentsController extends Controller
         }
 
         /*
-         * Guardamos el archivo adjunto si existe.
+         * Guardamos archivos adjuntos si existen.
          */
-        if ($comment && $request->hasFile('attachment')) {
+        if ($comment && $request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('attachments', 'public');
+                $comment->attachments()->create([
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'user_id' => auth()->id(),
+                ]);
+            }
+        } elseif ($comment && $request->hasFile('attachment')) {
             Attachment::storeAttachmentFromRequest(
                 $request,
                 $comment
             );
         }
 
-        return redirect()->route('tickets.index');
+        return redirect()->route('tickets.show', $ticket);
     }
 }

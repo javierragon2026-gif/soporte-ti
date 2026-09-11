@@ -10,7 +10,8 @@ class RequesterTicketsController extends Controller
     public function show($id)
     {
         // Buscamos el ticket por su ID y garantizamos que le pertenezca al usuario logueado
-        $ticket = \App\Models\Ticket::where('id', $id)
+        $ticket = Ticket::with(['agent', 'comments.user', 'attachments'])
+            ->where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
@@ -20,7 +21,7 @@ class RequesterTicketsController extends Controller
     public function rate($id)
     {
         // Misma validación de seguridad para la calificación
-        $ticket = \App\Models\Ticket::where('id', $id)
+        $ticket = Ticket::where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
@@ -36,8 +37,9 @@ class RequesterTicketsController extends Controller
 
     public function index()
     {
-        // Consultamos únicamente mediante user_id
-        $tickets = Ticket::where('user_id', auth()->id())
+        // Consultamos con relaciones necesarias
+        $tickets = Ticket::with(['agent'])
+            ->where('user_id', auth()->id())
             ->latest()
             ->paginate(10);
 

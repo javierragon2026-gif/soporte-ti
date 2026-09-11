@@ -45,6 +45,13 @@ class Ticket extends Model
         ]);
     }
 
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id')->withDefault([
+            'name' => 'Sin asignar',
+        ]);
+    }
+
     public function team()
     {
         return $this->belongsTo(Team::class)->withDefault([
@@ -130,13 +137,37 @@ class Ticket extends Model
     public function statusName()
     {
         return match ((int) $this->status) {
-            self::STATUS_NEW => 'Nuevo',
-            self::STATUS_OPEN => 'Abierto',
-            self::STATUS_PENDING => 'Pendiente',
+            self::STATUS_NEW => 'Abierto',
+            self::STATUS_OPEN => 'En Proceso',
+            self::STATUS_PENDING => 'Pendiente de Información',
             self::STATUS_SOLVED => 'Resuelto',
             self::STATUS_CLOSED => 'Cerrado',
             self::STATUS_MERGED => 'Fusionado',
             default => 'Desconocido',
+        };
+    }
+
+    public function statusBadgeBg()
+    {
+        return match ((int) $this->status) {
+            self::STATUS_NEW => '#e0f2fe',
+            self::STATUS_OPEN => '#dbeafe',
+            self::STATUS_PENDING => '#fef3c7',
+            self::STATUS_SOLVED => '#d1fae5',
+            self::STATUS_CLOSED => '#f1f5f9',
+            default => '#f1f5f9',
+        };
+    }
+
+    public function statusBadgeColor()
+    {
+        return match ((int) $this->status) {
+            self::STATUS_NEW => '#0284c7',
+            self::STATUS_OPEN => '#1d4ed8',
+            self::STATUS_PENDING => '#d97706',
+            self::STATUS_SOLVED => '#047857',
+            self::STATUS_CLOSED => '#475569',
+            default => '#475569',
         };
     }
 
