@@ -74,7 +74,7 @@
 
                         @foreach ($ticket->comments as $comment)
                             @php
-                                // Lógica inteligente para saber quién es quién, incluso si haces pruebas tú mismo.
+                                // Lógica inteligente para saber quién es quién
                                 $isAdmin = $comment->user->admin ?? false;
                                 $isAuthor = $comment->user_id === $ticket->user_id;
 
@@ -99,8 +99,7 @@
                                             <span class="badge bg-secondary ms-1">Autor</span>
                                         @endif
                                         @if ($comment->private)
-                                            <span class="badge bg-danger ms-1"><i class="fas fa-eye-slash me-1"></i>Nota
-                                                Interna</span>
+                                            <span class="badge bg-danger ms-1"><i class="fas fa-eye-slash me-1"></i>Nota Interna</span>
                                         @endif
                                     </div>
                                     <span class="text-muted small"><i class="far fa-clock me-1"></i>
@@ -150,15 +149,14 @@
 
                                 <!-- Zona de Adjuntos -->
                                 <div class="mb-3">
-                                    <label class="form-label text-muted small fw-bold">ADJUNTAR ARCHIVO O PEGAR IMAGEN
-                                        (CTRL+V)</label>
+                                    <label class="form-label text-muted small fw-bold">ADJUNTAR ARCHIVO O PEGAR IMAGEN (CTRL+V)</label>
                                     <input type="file" id="adminAttachment" name="attachments[]"
                                         class="form-control form-control-lg bg-light border-0" multiple>
                                     <span id="admin-paste-success" class="text-success small fw-bold d-none mt-1"><i
                                             class="fas fa-check-circle me-1"></i> ¡Imagen pegada correctamente!</span>
                                 </div>
 
-                                <!-- Estado implicito para el controlador de comentarios -->
+                                <!-- Estado implícito para el controlador de comentarios -->
                                 <input type="hidden" name="new_status" value="{{ $ticket->status }}">
 
                                 <div
@@ -205,72 +203,52 @@
 
                             <!-- 1. Estado del Ticket -->
                             <div class="mb-4">
-                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-thermometer-half me-1"></i>
-                                    ESTATUS ACTUAL</label>
+                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-thermometer-half me-1"></i> ESTATUS ACTUAL</label>
                                 <select name="status" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
-                                    <option value="1" {{ $ticket->status == 1 ? 'selected' : '' }}>🔵 Nuevo / Abierto
-                                    </option>
-                                    <option value="2" {{ $ticket->status == 2 ? 'selected' : '' }}>🟠 En Proceso
-                                    </option>
-                                    <option value="3" {{ $ticket->status == 3 ? 'selected' : '' }}>🟡 Pendiente
-                                        (Falta info)</option>
-                                    <option value="4" {{ $ticket->status == 4 ? 'selected' : '' }}>🟢 Resuelto
-                                    </option>
+                                    <option value="1" {{ $ticket->status == 1 ? 'selected' : '' }}>🔵 Nuevo / Abierto</option>
+                                    <option value="2" {{ $ticket->status == 2 ? 'selected' : '' }}>🟠 En Proceso</option>
+                                    <option value="3" {{ $ticket->status == 3 ? 'selected' : '' }}>🟡 Pendiente (Falta info)</option>
+                                    <option value="4" {{ $ticket->status == 4 ? 'selected' : '' }}>🟢 Resuelto</option>
                                     <option value="5" {{ $ticket->status == 5 ? 'selected' : '' }}>⚫ Cerrado</option>
                                 </select>
                             </div>
 
-                            <!-- 2. Categoría Real (Corrigiendo al usuario) -->
+                            <!-- 2. Categoría Real -->
                             <div class="mb-4">
-                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-tags me-1"></i> CATEGORÍA /
-                                    MÓDULO</label>
-                                <!-- Usa la propiedad correcta si tu BD la llama 'categoria' o 'category_id' -->
+                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-tags me-1"></i> CATEGORÍA / MÓDULO</label>
                                 <select name="categoria" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
                                     @php $currentCat = $ticket->categoria ?? 'SOPORTE'; @endphp
                                     <option value="SAP" {{ $currentCat == 'SAP' ? 'selected' : '' }}>SAP</option>
                                     <option value="WMS" {{ $currentCat == 'WMS' ? 'selected' : '' }}>WMS</option>
-                                    <option value="SOPORTE" {{ $currentCat == 'SOPORTE' ? 'selected' : '' }}>Soporte
-                                        Técnico</option>
-                                    <option value="EQUIPOS" {{ $currentCat == 'EQUIPOS' ? 'selected' : '' }}>
-                                        Infraestructura / Equipos</option>
-                                    <option value="RETAIL" {{ $currentCat == 'RETAIL' ? 'selected' : '' }}>Retail One
-                                    </option>
+                                    <option value="SOPORTE" {{ $currentCat == 'SOPORTE' ? 'selected' : '' }}>Soporte Técnico</option>
+                                    <option value="EQUIPOS" {{ $currentCat == 'EQUIPOS' ? 'selected' : '' }}>Infraestructura / Equipos</option>
+                                    <option value="RETAIL" {{ $currentCat == 'RETAIL' ? 'selected' : '' }}>Retail One</option>
                                     <option value="OTROS" {{ $currentCat == 'OTROS' ? 'selected' : '' }}>Otros</option>
                                 </select>
-                                <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Modifica esto si el
-                                    usuario se equivocó.</small>
+                                <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Modifica esto si el usuario se equivocó.</small>
                             </div>
 
                             <!-- 3. Prioridad -->
                             <div class="mb-4">
-                                <label class="fw-bold text-muted small mb-2"><i
-                                        class="fas fa-exclamation-triangle me-1"></i> PRIORIDAD</label>
+                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-exclamation-triangle me-1"></i> PRIORIDAD</label>
                                 <select name="priority" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
                                     <option value="1" {{ $ticket->priority == 1 ? 'selected' : '' }}>🟢 Baja</option>
-                                    <option value="2" {{ $ticket->priority == 2 ? 'selected' : '' }}>🟡 Normal
-                                    </option>
-                                    <option value="3" {{ $ticket->priority == 3 ? 'selected' : '' }}>🔴 Alta /
-                                        Urgente</option>
+                                    <option value="2" {{ $ticket->priority == 2 ? 'selected' : '' }}>🟡 Normal</option>
+                                    <option value="3" {{ $ticket->priority == 3 ? 'selected' : '' }}>🔴 Alta / Urgente</option>
                                 </select>
                             </div>
 
-
                             <!-- 4. Asignación (Agente TI) -->
                             <div class="mb-4">
-                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-user-shield me-1"></i>
-                                    ASIGNADO A</label>
-                                <!-- Asegúrate de que el 'name' coincida con tu base de datos (ej. user_id o agent_id) -->
+                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-user-shield me-1"></i> ASIGNADO A</label>
                                 <select name="user_id" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
                                     <option value="">Bandeja General (Sin asignar)</option>
-
-                                    {{-- Consulta a todos los usuarios que ya existen en BD y tienen admin = 1 --}}
                                     @foreach (\App\Models\User::where('admin', 1)->get() as $agente)
-                                        <option value="{{ $agente->id }}"
-                                            {{ $ticket->user_id == $agente->id ? 'selected' : '' }}>
+                                        <option value="{{ $agente->id }}" {{ $ticket->user_id == $agente->id ? 'selected' : '' }}>
                                             {{ $agente->name }}
                                         </option>
                                     @endforeach
@@ -292,7 +270,8 @@
     </div>
 @endsection
 
-@section('scripts')
+{{-- Aquí está el cambio vital: Pasamos de @section a @push --}}
+@push('scripts')
     <style>
         .tox-tinymce {
             border-radius: 12px !important;
@@ -318,9 +297,9 @@
             tinymce.init({
                 selector: '#adminBodyTextarea',
                 plugins: 'image paste link lists',
-                toolbar: 'bold italic underline | numlist bullist | link image',
+                toolbar: 'bold italic underline | numlist bullist | link image | undo redo',
                 menubar: false,
-                paste_data_images: true,
+                paste_data_images: true, // Permite Ctrl+V directo en el editor
                 height: 250,
                 setup: function(editor) {
                     editor.on('change', function() {
@@ -329,8 +308,9 @@
                 }
             });
 
-            // 2. Lógica para pegar imágenes (Ctrl+V) en el adjunto
+            // 2. Lógica para atrapar "Ctrl+V" fuera del editor y mandarlo al input file
             document.addEventListener('paste', function(e) {
+                // Si están pegando dentro de TinyMCE, ignoramos esto para no estorbar al editor
                 if (e.target.closest('.tox-tinymce') || e.target.tagName === 'IFRAME') return;
 
                 let fileInput = document.getElementById('adminAttachment');
@@ -341,35 +321,38 @@
                 let clipboardData = e.clipboardData || window.clipboardData;
                 if (!clipboardData) return;
 
-                let dt = new DataTransfer();
-                let fileAdded = false;
-
-                // Conservar archivos previos si ya había seleccionado algunos
-                if (fileInput.files.length) {
-                    for (let file of fileInput.files) {
-                        dt.items.add(file);
-                    }
-                }
+                let file = null;
 
                 if (clipboardData.items) {
                     for (let i = 0; i < clipboardData.items.length; i++) {
                         if (clipboardData.items[i].type.indexOf("image") !== -1) {
-                            let file = clipboardData.items[i].getAsFile();
-                            let finalFile = new File([file], "evidencia_" + Date.now() + ".png", {
-                                type: file.type || 'image/png'
-                            });
-                            dt.items.add(finalFile);
-                            fileAdded = true;
+                            file = clipboardData.items[i].getAsFile();
+                            break;
                         }
                     }
                 }
 
-                if (fileAdded) {
-                    fileInput.files = dt.files;
-                    pasteSuccessMsg.classList.remove('d-none');
-                    setTimeout(() => pasteSuccessMsg.classList.add('d-none'), 5000);
+                if (file) {
+                    let finalFile = new File([file], "evidencia_" + Date.now() + ".png", { type: file.type || 'image/png' });
+                    
+                    let dataTransfer = new DataTransfer();
+                    
+                    // Si ya tenían un archivo cargado antes, lo conservamos en la lista
+                    if (fileInput.files.length) {
+                        for (let f of fileInput.files) {
+                            dataTransfer.items.add(f);
+                        }
+                    }
+                    dataTransfer.items.add(finalFile);
+                    
+                    fileInput.files = dataTransfer.files;
+
+                    if (pasteSuccessMsg) {
+                        pasteSuccessMsg.classList.remove('d-none');
+                        setTimeout(() => pasteSuccessMsg.classList.add('d-none'), 5000);
+                    }
                 }
             });
         });
     </script>
-@endsection
+@endpush
