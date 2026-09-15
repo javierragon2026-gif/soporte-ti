@@ -166,7 +166,7 @@
 
             {{-- Panel Lateral de Estado Rápido --}}
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background: #ffffff;">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background: #ffffff;">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0 fw-bold" style="color: #67768A;">
                             <i class="fas fa-tools me-2" style="color: #F4A637;"></i>Mesa de Ayuda
@@ -182,17 +182,33 @@
                         <div class="list-group list-group-flush">
                             <a href="{{ route('tickets.index') }}?unassigned=true"
                                 class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
-                                <span><i class="fas fa-inbox me-2" style="color: #67768A;"></i>Tomar ticket sin
-                                    asignar</span>
-                                <i class="fas fa-chevron-right text-muted small"></i>
-                            </a>
-                            <a href="{{ route('profile.show') }}"
-                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
-                                <span><i class="fas fa-user-cog me-2" style="color: #67768A;"></i>Ajustes de mi
-                                    cuenta</span>
+                                <span><i class="fas fa-inbox me-2" style="color: #67768A;"></i>Tomar ticket sin asignar</span>
                                 <i class="fas fa-chevron-right text-muted small"></i>
                             </a>
                         </div>
+                    </div>
+                </div>
+
+                {{-- Sincronización de Usuarios M365 --}}
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #ffffff; border-left: 5px solid #0078D4 !important;">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark mb-1"><i class="fab fa-microsoft me-2" style="color: #0078D4;"></i>Directorio M365</h6>
+                        <p class="small text-muted mb-2">
+                            Última Sincronización:<br>
+                            <span class="fw-bold text-dark">
+                                @if(Cache::has('last_m365_sync'))
+                                    {{ Cache::get('last_m365_sync')->isoFormat('dddd D [de] MMMM, HH:mm') }} hrs
+                                @else
+                                    Nunca / Desconocido
+                                @endif
+                            </span>
+                        </p>
+                        <form action="{{ route('admin.sync-users') }}" method="POST" class="d-grid mt-2">
+                            @csrf
+                            <button type="submit" class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #0078D4; border-radius: 6px;">
+                                <i class="fas fa-sync-alt me-1"></i> Sincronizar Ahora
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

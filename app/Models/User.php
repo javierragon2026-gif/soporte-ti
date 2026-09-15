@@ -62,4 +62,14 @@ class User extends Authenticatable
 
         return in_array($this->email, $adminEmails);
     }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'user_id');
+    }
+
+    public function assignedTickets()
+    {
+        return $this->hasMany(Ticket::class, 'agent_id');
+    }
 }

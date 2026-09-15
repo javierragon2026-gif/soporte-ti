@@ -53,6 +53,28 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Protección Global Anti-Doble Clic
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    if (form.checkValidity && !form.checkValidity()) {
+                        return; // Si el formulario es inválido por HTML5, no bloquear
+                    }
+                    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                    if (submitBtn && !submitBtn.disabled) {
+                        setTimeout(() => {
+                            submitBtn.disabled = true;
+                            if (submitBtn.tagName === 'BUTTON') {
+                                submitBtn.dataset.originalHtml = submitBtn.innerHTML;
+                                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Procesando...';
+                            }
+                        }, 50);
+                    }
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 

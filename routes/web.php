@@ -87,6 +87,11 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
         return view('welcome');
     })->name('dashboard');
 
+    Route::post('/sync-users', function () {
+        \Illuminate\Support\Facades\Artisan::call('sync:m365-users');
+        return redirect()->back()->with('success', '¡Directorio de usuarios sincronizado con Microsoft 365!');
+    })->name('admin.sync-users');
+
     Route::get('tickets/fusionar', [TicketsMergeController::class, 'index'])->name('tickets.merge.index');
     Route::get('tickets/buscar/{text}', [TicketsSearchController::class, 'index'])->name('tickets.search');
     

@@ -32,6 +32,17 @@ class HomeOfficeController extends Controller
             'policy_accepted' => 'required|accepted',
         ]);
 
+        // Evitar múltiples solicitudes activas/acaparamiento de laptops por el mismo usuario
+        $existingActive = HomeOfficeRequest::where('user_id', auth()->id())
+            ->whereIn('status', ['pending', 'approved', 'active'])
+            ->first();
+
+        if ($existingActive) {
+            return back()->withInput()->withErrors([
+                'active_loan' => 'Ya tienes una solicitud de Home Office en curso (Estado: ' . ucfirst($existingActive->status) . '). Debes entregar el equipo actual antes de solicitar uno nuevo.'
+            ]);
+        }
+
         HomeOfficeRequest::create([
             'user_id' => auth()->id(),
             'request_type' => $validated['request_type'],

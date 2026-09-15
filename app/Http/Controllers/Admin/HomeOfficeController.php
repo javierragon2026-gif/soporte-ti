@@ -73,7 +73,8 @@ class HomeOfficeController extends Controller
     public function checkin(Request $request, HomeOfficeRequest $homeOffice)
     {
         $request->validate([
-            'checkin_notes' => 'nullable|string'
+            'checkin_notes' => 'nullable|string',
+            'device_status' => 'nullable|in:available,maintenance'
         ]);
 
         $homeOffice->update([
@@ -84,7 +85,8 @@ class HomeOfficeController extends Controller
         ]);
 
         if ($homeOffice->device) {
-            $homeOffice->device->update(['status' => 'available']);
+            $deviceStatus = $request->input('device_status', 'available');
+            $homeOffice->device->update(['status' => $deviceStatus]);
         }
 
         return back()->with('success', 'Ingreso / Devolución registrada correctamente.');

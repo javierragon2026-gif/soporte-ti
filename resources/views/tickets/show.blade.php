@@ -8,16 +8,45 @@
                      PANEL IZQUIERDO: HILO DEL TICKET Y CHAT
                 =========================================== -->
             <div class="col-lg-8">
-                <!-- Encabezado del Ticket -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <a href="{{ route('tickets.index') }}" class="btn btn-outline-secondary btn-sm fw-bold shadow-sm"
-                        style="border-radius: 8px;">
-                        <i class="fas fa-arrow-left me-1"></i> Volver a Bandeja
-                    </a>
-                    <span class="badge px-3 py-2 shadow-sm" style="background-color: #67768A; font-size: 0.9rem;">
-                        TK-{{ str_pad($ticket->id, 4, '0', STR_PAD_LEFT) }}
-                    </span>
+                <!-- Navegación y Encabezado del Ticket -->
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-2 border-light">
+                    <div class="d-flex align-items-center">
+                        <a href="{{ route('tickets.index') }}" class="btn btn-light rounded-circle shadow-sm me-3 text-secondary"
+                            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
+                            title="Volver a la Bandeja">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">
+                                TICKET: TK-{{ str_pad($ticket->id, 4, '0', STR_PAD_LEFT) }}
+                            </h3>
+                            <div class="text-muted small mt-1 fw-semibold">
+                                <i class="fas fa-folder-open me-1" style="color: #F4A637;"></i>
+                                Módulo Reportado: <span class="text-dark">{{ $ticket->categoria ?? 'General' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Aquí podríamos poner botones de fusionar, imprimir, etc. -->
                 </div>
+
+                @php
+                    $isOverdue = false;
+                    if ($ticket->created_at && in_array($ticket->status, [1, 2])) {
+                        if ($ticket->created_at->diffInHours(now()) > 48) {
+                            $isOverdue = true;
+                        }
+                    }
+                @endphp
+
+                @if($isOverdue)
+                    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4" style="border-radius: 12px;">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-0">Ticket Vencido (SLA > 48hrs)</h6>
+                            <span class="small">Este ticket lleva abierto demasiado tiempo y requiere atención inmediata.</span>
+                        </div>
+                    </div>
+                @endif
 
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
                     <div class="card-header bg-white p-4 border-bottom-0">
@@ -142,6 +171,17 @@
                                 enctype="multipart/form-data" id="comment-form">
                                 @csrf
 
+                                <!-- Plantillas Rápidas (Solo para TI) -->
+                                @if (auth()->user()?->admin)
+                                <div class="mb-2 d-flex gap-2 flex-wrap">
+                                    <span class="small fw-bold text-muted me-1 mt-1"><i class="fas fa-bolt text-warning"></i> Respuestas Rápidas:</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="Hola. Hemos recibido tu solicitud de desbloqueo de cuenta SAP. Por favor confírmanos tu número de empleado para proceder con la reactivación temporal.">Desbloqueo SAP</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="Hola. Tu problema ha sido escalado al área de Infraestructura para revisión en sitio. En breve un técnico pasará a tu lugar.">Revisión en Sitio</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="El equipo WMS se encuentra en mantenimiento programado. Se restablecerá el servicio en los próximos 30 minutos. Agradecemos tu paciencia.">Caída WMS</button>
+                                    <button type="button" class="btn btn-sm btn-outline-success quick-reply-btn" data-reply="Tu solicitud ha sido atendida y solucionada. Procedemos a cerrar este ticket. ¡Gracias por contactar a Sistemas!">Cierre Estándar</button>
+                                </div>
+                                @endif
+
                                 <div class="mb-3">
                                     <textarea id="adminBodyTextarea" name="body" class="form-control bg-light border-0" rows="5"
                                         placeholder="Escribe aquí la solución, avances o requerimientos..."></textarea>
@@ -205,6 +245,7 @@
                             <div class="mb-4">
                                 <label class="fw-bold text-muted small mb-2"><i class="fas fa-thermometer-half me-1"></i> ESTATUS ACTUAL</label>
                                 <select name="status" class="form-select border-0 shadow-sm fw-bold text-secondary"
+                                <select name="status" id="ticketStatusSelect" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
                                     <option value="1" {{ $ticket->status == 1 ? 'selected' : '' }}>🔵 Nuevo / Abierto</option>
                                     <option value="2" {{ $ticket->status == 2 ? 'selected' : '' }}>🟠 En Proceso</option>
@@ -212,6 +253,15 @@
                                     <option value="4" {{ $ticket->status == 4 ? 'selected' : '' }}>🟢 Resuelto</option>
                                     <option value="5" {{ $ticket->status == 5 ? 'selected' : '' }}>⚫ Cerrado</option>
                                 </select>
+                            </div>
+                            
+                            <!-- Campo dinámico de justificación de cierre -->
+                            <div class="mb-4" id="resolutionCommentWrapper" style="display: {{ in_array($ticket->status, [4, 5]) ? 'block' : 'none' }};">
+                                <label class="fw-bold text-muted small mb-2"><i class="fas fa-check-double me-1 text-success"></i> COMENTARIO DE RESOLUCIÓN (Obligatorio)</label>
+                                <textarea name="resolution_comment" class="form-control border-0 shadow-sm fw-semibold" rows="3" placeholder="Describe brevemente cómo se resolvió el problema..." style="border-radius: 8px;">{{ old('resolution_comment') }}</textarea>
+                                @error('resolution_comment')
+                                    <div class="text-danger small mt-1 fw-bold">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <!-- 2. Categoría Real -->
@@ -309,6 +359,37 @@
             });
 
             // 2. Lógica para atrapar "Ctrl+V" fuera del editor y mandarlo al input file
+            // Lógica para mostrar/ocultar Comentario de Resolución Obligatorio
+            const statusSelect = document.getElementById('ticketStatusSelect');
+            const resolutionWrapper = document.getElementById('resolutionCommentWrapper');
+            
+            if (statusSelect && resolutionWrapper) {
+                statusSelect.addEventListener('change', function() {
+                    if (this.value == '4' || this.value == '5') {
+                        resolutionWrapper.style.display = 'block';
+                    } else {
+                        resolutionWrapper.style.display = 'none';
+                    }
+                });
+            }
+
+            // Lógica para Plantillas Rápidas
+            document.querySelectorAll('.quick-reply-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const replyText = this.getAttribute('data-reply');
+                    const textarea = document.getElementById('adminBodyTextarea');
+                    
+                    if (window.tinymce && tinymce.get('adminBodyTextarea')) {
+                        // Si TinyMCE está activo
+                        let currentContent = tinymce.get('adminBodyTextarea').getContent();
+                        tinymce.get('adminBodyTextarea').setContent(currentContent + '<p>' + replyText + '</p>');
+                    } else {
+                        // Si es un textarea normal
+                        textarea.value += (textarea.value ? '\n\n' : '') + replyText;
+                    }
+                });
+            });
+
             document.addEventListener('paste', function(e) {
                 // Si están pegando dentro de TinyMCE, ignoramos esto para no estorbar al editor
                 if (e.target.closest('.tox-tinymce') || e.target.tagName === 'IFRAME') return;

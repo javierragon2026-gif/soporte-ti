@@ -88,9 +88,10 @@ class TicketsController extends Controller
      */
     public function store(Request $request)
     {
-        // Validamos que venga la descripción obligatoria
+        // Validamos que venga la descripción obligatoria y archivos seguros
         $request->validate([
-            'body'  => 'required|string',
+            'body'          => 'required|string',
+            'attachments.*' => 'nullable|file|max:15360|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx,txt,zip,rar,7z',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -157,9 +158,47 @@ class TicketsController extends Controller
             'categoria' => 'nullable|string',
             'priority'  => 'required|integer',
             'agent_id'  => 'nullable|integer', // <-- Cambiado para validar al agente sin afectar al creador (user_id)
+            'agent_id'  => 'nullable|integer', 
+            'resolution_comment' => 'required_if:status,4,5|nullable|string|min:10',
+        ], [
+            'resolution_comment.required_if' => 'Debes escribir un comentario de resolución para poder cerrar o marcar como resuelto el ticket.',
+            'resolution_comment.min' => 'El comentario de resolución debe ser un poco más detallado (mínimo 10 caracteres).',
         ]);
 
-        // 2. Aplicamos los cambios al ticket
+        // 2. Generar Bitácora (Audit Trail) de los cambios
+        $changes = [];
+        if ($ticket->status != $request->status) {
+            $ticketFake = clone $ticket;
+            $ticketFake->status = $request->status;
+            $changes[] = "Estado (" . $ticketFake->statusName() . ")";
+        }
+        if ($ticket->categoria != $request->categoria) {
+            $changes[] = "Categoría (" . ($ticket->categoria ?: 'Sin asignar') . " ➔ " . $request->categoria . ")";
+        }
+        if ($ticket->priority != $request->priority) {
+            $changes[] = "Prioridad cambiada";
+        }
+        if ($ticket->agent_id != $request->agent_id) {
+            $agente = \App\Models\User::find($request->agent_id);
+            $nombre = $agente ? $agente->name : 'Sin asignar';
+            $changes[] = "Asignado a: " . $nombre;
+        }
+
+        if (count($changes) > 0) {
+            $msg = "<p>🔧 <strong>Actualización del Sistema:</strong> " . auth()->user()->name . " actualizó los siguientes campos: " . implode(', ', $changes) . "</p>";
+            $ticket->addNote(auth()->user(), $msg);
+        }
+        
+        // 2.5 Si se envió un comentario de resolución, agregarlo al hilo público
+        if ($request->filled('resolution_comment')) {
+            $ticket->comments()->create([
+                'user_id' => auth()->user()->id,
+                'body' => "<div style='background-color: #d1fae5; padding: 10px; border-radius: 8px; border-left: 4px solid #10b981;'><strong>✅ Notas de Resolución:</strong><br>" . nl2br(e($request->resolution_comment)) . "</div>",
+                // assuming Comments don't have a specific 'is_resolution' field, we format it visually.
+            ]);
+        }
+
+        // 3. Aplicamos los cambios al ticket
         $ticket->update([
             'status'    => $request->status,
             'categoria' => $request->categoria,

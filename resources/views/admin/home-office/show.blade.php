@@ -117,6 +117,15 @@
 
                             <form method="POST" action="{{ route('admin.home-office.checkin', $homeOffice) }}">
                                 @csrf
+                                @if($homeOffice->device)
+                                    <div class="mb-3">
+                                        <label class="fw-bold small text-dark">ESTADO FÍSICO / DESTINO DEL EQUIPO</label>
+                                        <select name="device_status" class="form-select border-0 shadow-sm mt-1" required>
+                                            <option value="available" selected>🟢 En Buen Estado (Regresar al Inventario Disponible)</option>
+                                            <option value="maintenance">🔴 Presenta Daño / Falla (Mandar a Mantenimiento)</option>
+                                        </select>
+                                    </div>
+                                @endif
                                 <div class="mb-3">
                                     <label class="fw-bold small text-dark">OBSERVACIONES DE INGRESO (¿FALTÓ ALGO? ¿DAÑOS?)</label>
                                     <textarea name="checkin_notes" class="form-control border-0 shadow-sm mt-1" rows="2" placeholder="Ej: Se entregó completo y funcionando..."></textarea>

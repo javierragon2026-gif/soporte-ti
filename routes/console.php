@@ -16,3 +16,7 @@ use Illuminate\Foundation\Inspiring;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->describe('Display an inspiring quote');
+
+// Programar la sincronización de usuarios con M365 todos los días a las 2:00 AM
+use Illuminate\Support\Facades\Schedule;
+Schedule::command('sync:m365-users')->dailyAt('02:00');

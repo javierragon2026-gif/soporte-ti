@@ -234,6 +234,20 @@
                                             {{ $ticket->created_at ? $ticket->created_at->format('d M, Y') : '--' }}</span>
                                         <span><i class="far fa-clock me-1 text-secondary"></i>
                                             {{ $ticket->created_at ? $ticket->created_at->format('H:i a') : '--' }}</span>
+                                            
+                                        @php
+                                            $isOverdue = false;
+                                            if ($ticket->created_at && in_array($ticket->status, [1, 2])) {
+                                                // Consider overdue if open/in process for > 48 hours
+                                                if ($ticket->created_at->diffInHours(now()) > 48) {
+                                                    $isOverdue = true;
+                                                }
+                                            }
+                                        @endphp
+                                        
+                                        @if($isOverdue)
+                                            <span class="badge bg-danger mt-1 shadow-sm" style="font-size: 0.7rem;"><i class="fas fa-fire-alt me-1"></i>SLA Atrasado (>48h)</span>
+                                        @endif
                                     </div>
                                 </td>
 

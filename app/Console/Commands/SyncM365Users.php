@@ -43,15 +43,21 @@ class SyncM365Users extends Command
             $email = strtolower($apiUser['mail'] ?? $apiUser['userPrincipalName']);
             if (!in_array(substr(strrchr($email, "@"), 1), $dominios)) continue;
 
-            User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'name'     => $apiUser['displayName'] ?? explode('@', $email)[0],
-                    'password' => bcrypt(Str::random(16)),
-                    'admin'    => in_array($email, $sistemas) ? 1 : 0,
-                ]
-            );
+            $user = User::firstOrNew(['email' => $email]);
+            $user->name = $apiUser['displayName'] ?? explode('@', $email)[0];
+            $user->admin = in_array($email, $sistemas) ? 1 : 0;
+            
+            // Solo generar la contraseña por defecto (12345) si es un usuario NUEVO
+            if (!$user->exists) {
+                $user->password = bcrypt('12345');
+            }
+            
+            // Laravel optimiza esto y solo hace UPDATE si los campos name/admin cambiaron.
+            $user->save();
         }
+
+        // Guardar la marca de tiempo de la última sincronización
+        \Illuminate\Support\Facades\Cache::put('last_m365_sync', now());
 
         $this->info('Sincronización finalizada con éxito.');
     }

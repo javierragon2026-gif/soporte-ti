@@ -46,6 +46,11 @@
                 <i class="fas fa-inbox me-3 w-20px"></i> Bandeja de Tickets
             </a>
         </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white d-flex align-items-center" href="{{ route('reports.analytics') }}">
+                <i class="fas fa-chart-pie me-3 w-20px"></i> Métricas y Rendimiento
+            </a>
+        </li>
         
         <h6 class="mt-4 mb-3 fw-bold"
             style="color: #61b0a5; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">

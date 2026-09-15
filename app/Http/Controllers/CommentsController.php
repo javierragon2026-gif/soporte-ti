@@ -24,6 +24,11 @@ class CommentsController extends Controller
             'private' => ['nullable', 'boolean'],
             'attachment' => ['nullable', 'file', 'max:10240'],
             'attachments.*' => ['nullable', 'file', 'max:10240'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,csv,txt', 'max:15000'],
+            'attachments.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,csv,txt', 'max:15000'],
+        ], [
+            'attachments.*.mimes' => 'El archivo adjunto debe ser de un formato válido (Imagen, PDF, Word, Excel).',
+            'attachments.*.max' => 'El archivo adjunto no puede pesar más de 15MB.',
         ]);
 
         /*
