@@ -132,6 +132,17 @@ class TicketsController extends Controller
                 }
             }
 
+            // 📧 Notificación de Confirmación de Recepción
+            try {
+                $mensajeCorreo = "Hemos recibido tu solicitud de soporte exitosamente. Tu ticket ha entrado a nuestra bandeja general y pronto un especialista de TI lo revisará.";
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TicketNotification($ticket, 'Ticket Recibido Exitosamente', $mensajeCorreo));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error enviando correo de nuevo ticket: ' . $e->getMessage());
+            }
+
+            // 📡 Disparar evento WebSocket para notificar a TI
+            event(new \App\Events\TicketUpdated($ticket));
+
             // Devolver el ID secuencial real a la máquina tragamonedas (AJAX)
             if ($request->ajax() || $request->wantsJson()) {
                 $ticketIdFormatted = 'TK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
@@ -205,6 +216,23 @@ class TicketsController extends Controller
             'priority'  => $request->priority,
             'agent_id'  => $request->agent_id, // <-- Guardamos al responsable aquí
         ]);
+
+        // 4. Disparamos evento de WebSockets para actualizar pantallas de otros agentes
+        event(new \App\Events\TicketUpdated($ticket));
+
+        // 5. Enviar notificación por correo si cambió el estado
+        if (in_array("Estado (" . $ticket->statusName() . ")", $changes)) {
+            $mensajeCorreo = "El estado de tu ticket ha sido actualizado a: **" . $ticket->statusName() . "**.";
+            if ($ticket->status == 3) {
+                $mensajeCorreo .= "\n\n⚠️ **Importante:** Sistemas necesita más información de tu parte para continuar trabajando en tu solicitud. Por favor, haz clic en el botón de abajo para responder.";
+            }
+            try {
+                \Illuminate\Support\Facades\Mail::to($ticket->user->email)->send(new \App\Mail\TicketNotification($ticket, 'Actualización de Estado', $mensajeCorreo));
+            } catch (\Exception $e) {
+                // Loguear error de correo, pero no detener la petición
+                \Illuminate\Support\Facades\Log::error('Error enviando correo de ticket: ' . $e->getMessage());
+            }
+        }
 
         return back()->with('success', '¡El ticket ha sido actualizado y asignado!');
     }

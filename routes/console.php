@@ -20,3 +20,5 @@ Artisan::command('inspire', function () {
 // Programar la sincronización de usuarios con M365 todos los días a las 2:00 AM
 use Illuminate\Support\Facades\Schedule;
 Schedule::command('sync:m365-users')->dailyAt('02:00');
+// Programar la lectura de correos IMAP cada minuto
+Schedule::command('tickets:parse-emails')->everyMinute();

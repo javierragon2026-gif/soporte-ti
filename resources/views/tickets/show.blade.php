@@ -244,21 +244,25 @@
                             <!-- 1. Estado del Ticket -->
                             <div class="mb-4">
                                 <label class="fw-bold text-muted small mb-2"><i class="fas fa-thermometer-half me-1"></i> ESTATUS ACTUAL</label>
-                                <select name="status" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                 <select name="status" id="ticketStatusSelect" class="form-select border-0 shadow-sm fw-bold text-secondary"
                                     style="height: 45px; border-radius: 8px;">
-                                    <option value="1" {{ $ticket->status == 1 ? 'selected' : '' }}>🔵 Nuevo / Abierto</option>
-                                    <option value="2" {{ $ticket->status == 2 ? 'selected' : '' }}>🟠 En Proceso</option>
-                                    <option value="3" {{ $ticket->status == 3 ? 'selected' : '' }}>🟡 Pendiente (Falta info)</option>
-                                    <option value="4" {{ $ticket->status == 4 ? 'selected' : '' }}>🟢 Resuelto</option>
-                                    <option value="5" {{ $ticket->status == 5 ? 'selected' : '' }}>⚫ Cerrado</option>
+                                    @php $selectedStatus = old('status', $ticket->status); @endphp
+                                    <option value="1" {{ $selectedStatus == 1 ? 'selected' : '' }}>🔵 Nuevo / Abierto</option>
+                                    <option value="2" {{ $selectedStatus == 2 ? 'selected' : '' }}>🟠 En Proceso</option>
+                                    <option value="3" {{ $selectedStatus == 3 ? 'selected' : '' }}>🟡 Pendiente (Falta info)</option>
+                                    <option value="4" {{ $selectedStatus == 4 ? 'selected' : '' }}>🟢 Resuelto</option>
+                                    <option value="5" {{ $selectedStatus == 5 ? 'selected' : '' }}>⚫ Cerrado</option>
                                 </select>
                             </div>
                             
                             <!-- Campo dinámico de justificación de cierre -->
-                            <div class="mb-4" id="resolutionCommentWrapper" style="display: {{ in_array($ticket->status, [4, 5]) ? 'block' : 'none' }};">
+                            @php
+                                $currentStatus = old('status', $ticket->status);
+                                $showResolution = in_array($currentStatus, [4, 5]) || $errors->has('resolution_comment');
+                            @endphp
+                            <div class="mb-4" id="resolutionCommentWrapper" style="display: {{ $showResolution ? 'block' : 'none' }};">
                                 <label class="fw-bold text-muted small mb-2"><i class="fas fa-check-double me-1 text-success"></i> COMENTARIO DE RESOLUCIÓN (Obligatorio)</label>
-                                <textarea name="resolution_comment" class="form-control border-0 shadow-sm fw-semibold" rows="3" placeholder="Describe brevemente cómo se resolvió el problema..." style="border-radius: 8px;">{{ old('resolution_comment') }}</textarea>
+                                <textarea name="resolution_comment" class="form-control border-0 shadow-sm fw-semibold {{ $errors->has('resolution_comment') ? 'is-invalid' : '' }}" rows="3" placeholder="Describe brevemente cómo se resolvió el problema..." style="border-radius: 8px;">{{ old('resolution_comment') }}</textarea>
                                 @error('resolution_comment')
                                     <div class="text-danger small mt-1 fw-bold">{{ $message }}</div>
                                 @enderror

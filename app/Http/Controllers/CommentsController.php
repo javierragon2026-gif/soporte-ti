@@ -50,6 +50,16 @@ class CommentsController extends Controller
                 $request->input('body'),
                 $request->input('new_status')
             );
+            
+            // 📧 Enviar notificación por correo al creador del ticket si fue TI quien comentó
+            if (auth()->user()->id !== $ticket->user_id) {
+                $mensajeCorreo = "El agente **" . auth()->user()->name . "** ha agregado un nuevo comentario a tu ticket:\n\n> " . strip_tags($request->input('body'));
+                try {
+                    \Illuminate\Support\Facades\Mail::to($ticket->user->email)->send(new \App\Mail\TicketNotification($ticket, 'Nuevo Comentario de Sistemas', $mensajeCorreo));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Error enviando correo de comentario: ' . $e->getMessage());
+                }
+            }
         }
 
         /*

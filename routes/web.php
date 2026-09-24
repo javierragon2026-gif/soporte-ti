@@ -11,22 +11,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RequesterTicketsController;
 use App\Http\Controllers\RequesterCommentsController;
 
-use App\Http\Controllers\TicketsMergeController;
 use App\Http\Controllers\TicketsSearchController;
 use App\Http\Controllers\TicketsController;
-use App\Http\Controllers\TicketsAssignController;
 use App\Http\Controllers\CommentsController;
-use App\Http\Controllers\TicketsTagsController;
-use App\Http\Controllers\TicketsEscalateController;
 use App\Http\Controllers\RequestersController;
 use App\Http\Controllers\AttachmentsController;
-use App\Http\Controllers\TasksController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\TeamAgentsController;
 use App\Http\Controllers\TeamMembershipController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\TicketTypesController;
 use App\Http\Controllers\ReportsController;
 
 Route::redirect('/', '/login');
@@ -92,23 +86,16 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
         return redirect()->back()->with('success', '¡Directorio de usuarios sincronizado con Microsoft 365!');
     })->name('admin.sync-users');
 
-    Route::get('tickets/fusionar', [TicketsMergeController::class, 'index'])->name('tickets.merge.index');
     Route::get('tickets/buscar/{text}', [TicketsSearchController::class, 'index'])->name('tickets.search');
     
     // Le quitamos 'store' al resource porque ya lo declaramos arriba para todos
     Route::resource('tickets', TicketsController::class)->except(['store', 'edit', 'destroy']);
 
-    Route::post('tickets/{ticket}/asignar', [TicketsAssignController::class, 'store'])->name('tickets.assign');
     Route::post('tickets/{ticket}/comentarios', [CommentsController::class, 'store'])->name('tickets.comments.store');
-    Route::post('tickets/{ticket}/etiquetas', [TicketsTagsController::class, 'store'])->name('tickets.tags.store');
-    Route::delete('tickets/{ticket}/etiquetas/{tag}', [TicketsTagsController::class, 'destroy'])->name('tickets.tags.destroy');
     Route::post('tickets/{ticket}/reabrir', [TicketsController::class, 'reopen'])->name('tickets.reopen');
-    Route::post('tickets/{ticket}/escalar', [TicketsEscalateController::class, 'store'])->name('tickets.escalate.store');
-    Route::delete('tickets/{ticket}/escalar', [TicketsEscalateController::class, 'destroy'])->name('tickets.escalate.destroy');
 
     Route::get('clientes', [RequestersController::class, 'index'])->name('requesters.index');
     Route::get('adjuntos/{filename}', [AttachmentsController::class, 'show'])->name('attachments');
-    Route::resource('tareas', TasksController::class)->only(['index', 'update', 'destroy']);
 
     Route::resource('equipos', TeamsController::class)->names('teams');
     Route::get('equipos/{team}/agentes', [TeamAgentsController::class, 'index'])->name('teams.agents');
@@ -120,7 +107,6 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
     Route::post('usuarios/guardar', [UsersController::class, 'store'])->name('user.store');
     Route::get('usuarios/{user}/suplantar', [UsersController::class, 'impersonate'])->name('users.impersonate');
     Route::resource('configuracion', SettingsController::class)->only(['edit', 'update'])->names('settings');
-    Route::get('tipos-de-ticket', [TicketTypesController::class, 'index'])->name('ticketTypes.index');
 
     Route::get('reportes', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('estadisticas', [ReportsController::class, 'analytics'])->name('reports.analytics');

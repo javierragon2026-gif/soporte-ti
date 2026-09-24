@@ -69,15 +69,6 @@ class Ticket extends Model
         return $this->hasMany(Note::class, 'ticket_id');
     }
 
-    public function mergedTickets()
-    {
-        return $this->belongsToMany(
-            Ticket::class,
-            'merged_tickets',
-            'ticket_id',
-            'merged_ticket_id'
-        );
-    }
 
     /**
      * Relación de archivos adjuntos agregada para evitar el colapso (Error 500).
@@ -123,16 +114,6 @@ class Ticket extends Model
     | Lógica de negocio
     |--------------------------------------------------------------------------
     */
-
-    public function isEscalated()
-    {
-        return false;
-    }
-
-    public function getIssueId()
-    {
-        return null;
-    }
 
     public function statusName()
     {
