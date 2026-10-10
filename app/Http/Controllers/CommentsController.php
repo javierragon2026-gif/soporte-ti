@@ -81,6 +81,7 @@ class CommentsController extends Controller
             );
         }
 
+        event(new \App\Events\TicketUpdated($ticket));
         return redirect()->route('tickets.show', $ticket);
     }
 }

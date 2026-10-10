@@ -11,6 +11,7 @@
         "laravel/reverb": "^1.11",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
+        "symfony/microsoft-graph-mailer": "^7.4",
         "webklex/laravel-imap": "^6.2"
     },
     "require-dev": {

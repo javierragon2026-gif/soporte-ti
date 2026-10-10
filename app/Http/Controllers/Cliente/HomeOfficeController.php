@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\HomeOfficeRequest;
 use Illuminate\Http\Request;
+use App\Helpers\GraphMailHelper;
 
 class HomeOfficeController extends Controller
 {
@@ -32,7 +33,6 @@ class HomeOfficeController extends Controller
             'policy_accepted' => 'required|accepted',
         ]);
 
-        // Evitar múltiples solicitudes activas/acaparamiento de laptops por el mismo usuario
         $existingActive = HomeOfficeRequest::where('user_id', auth()->id())
             ->whereIn('status', ['pending', 'approved', 'active'])
             ->first();
@@ -43,7 +43,7 @@ class HomeOfficeController extends Controller
             ]);
         }
 
-        HomeOfficeRequest::create([
+        $ho = HomeOfficeRequest::create([
             'user_id' => auth()->id(),
             'request_type' => $validated['request_type'],
             'scheduled_start_date' => $validated['scheduled_start_date'],
@@ -51,9 +51,27 @@ class HomeOfficeController extends Controller
             'policy_accepted' => true,
             'status' => 'pending',
         ]);
+        
+        $ho->load('user');
+
+        try {
+            // Enviar correo al usuario
+            $tituloUser = "Solicitud de Home Office Enviada";
+            $mensajeUser = "Hola {$ho->user->name}, tu solicitud para llevarte equipo de Home Office del {$ho->scheduled_start_date} al {$ho->scheduled_end_date} ha sido registrada. Pronto el equipo de Sistemas la revisará para su aprobación.";
+            $htmlUser = (new \App\Mail\HomeOfficeNotification($ho, $tituloUser, $mensajeUser))->render();
+            GraphMailHelper::send($ho->user->email, $tituloUser, $htmlUser);
+
+            // Enviar correo a Sistemas
+            $correoSistemas = env('EMAIL_FROM', 'sistemas@ragon.com.mx');
+            $tituloIT = "Nueva Solicitud de Home Office: {$ho->user->name}";
+            $mensajeIT = "El usuario {$ho->user->name} ha solicitado equipo para Home Office del {$ho->scheduled_start_date} al {$ho->scheduled_end_date}. Favor de revisar la solicitud en el panel de administración.";
+            $htmlIT = (new \App\Mail\HomeOfficeNotification($ho, $tituloIT, $mensajeIT))->render();
+            GraphMailHelper::send($correoSistemas, $tituloIT, $htmlIT);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error enviando correo de HO: ' . $e->getMessage());
+        }
 
         return redirect()->route('cliente.home-office.index')
             ->with('success', 'Solicitud de Home Office enviada a Sistemas. En espera de aprobación.');
     }
 }
-

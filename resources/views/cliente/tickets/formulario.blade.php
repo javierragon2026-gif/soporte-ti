@@ -8,7 +8,7 @@
 
                     <div class="card-header border-0 text-center py-4" style="background-color: #67768A;">
                         <h5 class="text-white fw-bold mb-0" style="letter-spacing: 1px;">
-                            <i class="fas fa-ticket-alt me-2" style="color: #F4A637;"></i> NUEVO REPORTE
+                            <i class="fas fa-ticket-alt me-2" style="color: #F4A637;"></i> NUEVO TICKET
                         </h5>
                     </div>
 

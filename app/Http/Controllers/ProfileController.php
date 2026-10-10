@@ -30,14 +30,51 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        $this->validate($request, [
-            'old'      => 'old_password:'.$user->password,
-            'password' => 'confirmed|min:5',
-        ]);
+        $messages = [
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'old.old_password' => 'La contraseña actual no es correcta.'
+        ];
+
+        // Validar contraseña vieja (si la pide)
+        if ($request->has('old')) {
+            $this->validate($request, [
+                'old'      => 'old_password:'.$user->password,
+                'password' => 'required|confirmed|min:6',
+            ], $messages);
+        } else {
+            $this->validate($request, [
+                'password' => 'required|confirmed|min:6',
+            ], $messages);
+        }
 
         $user->update(['password' => bcrypt($request->get('password'))]);
 
         return back();
+    }
+
+    public function forcePasswordForm()
+    {
+        return view('profile.force-password');
+    }
+
+    public function forcePasswordUpdate(Request $request)
+    {
+        $messages = [
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+        ];
+
+        $this->validate($request, [
+            'password' => 'required|confirmed|min:6',
+        ], $messages);
+
+        $user = auth()->user();
+        $user->update(['password' => bcrypt($request->get('password'))]);
+
+        return redirect()->route('dashboard')->with('success', '¡Contraseña actualizada correctamente!');
     }
 
     private function notificationSettings(Request $request)

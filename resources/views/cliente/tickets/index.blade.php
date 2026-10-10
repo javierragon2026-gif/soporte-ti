@@ -4,7 +4,7 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold" style="color: #67768A;"><i class="fas fa-history me-2"></i> Mi Historial de Tickets</h4>
-        <a href="{{ route('cliente.tickets.crear') }}" class="btn text-white fw-bold shadow-sm" style="background-color: #F4A637;">Nuevo Reporte</a>
+        <a href="{{ route('cliente.tickets.crear') }}" class="btn text-white fw-bold shadow-sm" style="background-color: #F4A637;">Nuevo Ticket</a>
     </div>
 
     <div class="card border-0 shadow-sm" style="border-radius: 12px;">

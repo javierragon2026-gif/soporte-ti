@@ -7,7 +7,7 @@
             
             <!-- Encabezado Limpio -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold" style="color: #67768A;"><i class="fas fa-ticket-alt me-2" style="color: #F4A637;"></i> Seguimiento de tu Reporte</h4>
+                <h4 class="fw-bold" style="color: #67768A;"><i class="fas fa-ticket-alt me-2" style="color: #F4A637;"></i> Seguimiento de tu ticket</h4>
                 <a href="{{ route('cliente.tickets.index') }}" class="btn btn-outline-secondary btn-sm fw-bold">
                     <i class="fas fa-arrow-left me-1"></i> Volver al Historial
                 </a>
@@ -16,11 +16,11 @@
             {{-- Tarjeta de Estado y Progreso del Ticket --}}
             @php
                 $statusDesc = match((int) $ticket->status) {
-                    1 => 'Tu reporte fue recibido exitosamente y se encuentra en espera de asignación a un técnico.',
-                    2 => 'Un técnico de TI está atendiendo activamente tu requerimiento.',
+                    1 => 'Tu ticket fue recibido exitosamente y se encuentra en espera de asignación.',
+                    2 => 'Una persona de TI está atendiendo activamente tu requerimiento.',
                     3 => 'Sistemas requiere información adicional de tu parte para poder continuar. Revisa las notas abajo.',
                     4 => 'Tu ticket ha sido resuelto por el área de Sistemas. Si todo quedó en orden, no requieres hacer nada más.',
-                    5 => 'Este reporte ha sido cerrado formalmente en el sistema.',
+                    5 => 'Este ticket ha sido cerrado formalmente en el sistema.',
                     default => 'Estado en revisión operativa.'
                 };
 
@@ -72,7 +72,7 @@
                     {{-- Datos Operativos Reales --}}
                     <div class="row g-3 text-secondary small">
                         <div class="col-sm-6 col-md-3">
-                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="fas fa-headset me-1" style="color: #61b0a5;"></i> Técnico Asignado</span>
+                            <span class="d-block text-muted small fw-bold text-uppercase"><i class="fas fa-headset me-1" style="color: #61b0a5;"></i> Persona Asignada</span>
                             <strong class="text-dark fs-6">
                                 @if($ticket->agent && $ticket->agent->id && $ticket->agent->name !== 'Sin asignar')
                                     {{ $ticket->agent->name }}

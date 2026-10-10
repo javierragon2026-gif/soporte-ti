@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="bg-light">
@@ -57,7 +58,7 @@
         // Protección Global Anti-Doble Clic
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('form').forEach(function(form) {
-                form.addEventListener('submit', function(e) {
+                form.addEventListener('submit', function(e) { if (e.defaultPrevented) return;
                     if (form.checkValidity && !form.checkValidity()) {
                         return; // Si el formulario es inválido por HTML5, no bloquear
                     }

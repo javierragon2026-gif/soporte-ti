@@ -52,13 +52,6 @@ class Ticket extends Model
         ]);
     }
 
-    public function team()
-    {
-        return $this->belongsTo(Team::class)->withDefault([
-            'name' => 'General',
-        ]);
-    }
-
     public function comments()
     {
         return $this->hasMany(Comment::class, 'ticket_id');

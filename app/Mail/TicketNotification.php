@@ -32,7 +32,16 @@ class TicketNotification extends Mailable
      */
     public function envelope(): Envelope
     {
+        $agente = $this->ticket->agent_id ? $this->ticket->agent : null;
+        
+        $fromName = $agente ? $agente->name . " (Soporte TI)" : config('mail.from.name');
+        $replyTo = $agente ? $agente->email : config('mail.from.address');
+
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $fromName),
+            replyTo: [
+                new \Illuminate\Mail\Mailables\Address($replyTo, $fromName),
+            ],
             subject: "[TK-" . str_pad($this->ticket->id, 4, '0', STR_PAD_LEFT) . "] " . $this->evento,
         );
     }

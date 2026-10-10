@@ -26,7 +26,16 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Aquí podríamos poner botones de fusionar, imprimir, etc. -->
+                    <!-- Acciones Super Admin -->
+                    @can('delete', $ticket)
+                    <form action="{{ route('tickets.destroy', $ticket) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este ticket permanentemente? Esta acción es irreversible.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold shadow-sm">
+                            <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+                        </button>
+                    </form>
+                    @endcan
                 </div>
 
                 @php
@@ -38,15 +47,7 @@
                     }
                 @endphp
 
-                @if($isOverdue)
-                    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4" style="border-radius: 12px;">
-                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
-                        <div>
-                            <h6 class="fw-bold mb-0">Ticket Vencido (SLA > 48hrs)</h6>
-                            <span class="small">Este ticket lleva abierto demasiado tiempo y requiere atención inmediata.</span>
-                        </div>
-                    </div>
-                @endif
+
 
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
                     <div class="card-header bg-white p-4 border-bottom-0">
@@ -171,17 +172,6 @@
                                 enctype="multipart/form-data" id="comment-form">
                                 @csrf
 
-                                <!-- Plantillas Rápidas (Solo para TI) -->
-                                @if (auth()->user()?->admin)
-                                <div class="mb-2 d-flex gap-2 flex-wrap">
-                                    <span class="small fw-bold text-muted me-1 mt-1"><i class="fas fa-bolt text-warning"></i> Respuestas Rápidas:</span>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="Hola. Hemos recibido tu solicitud de desbloqueo de cuenta SAP. Por favor confírmanos tu número de empleado para proceder con la reactivación temporal.">Desbloqueo SAP</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="Hola. Tu problema ha sido escalado al área de Infraestructura para revisión en sitio. En breve un técnico pasará a tu lugar.">Revisión en Sitio</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-reply-btn" data-reply="El equipo WMS se encuentra en mantenimiento programado. Se restablecerá el servicio en los próximos 30 minutos. Agradecemos tu paciencia.">Caída WMS</button>
-                                    <button type="button" class="btn btn-sm btn-outline-success quick-reply-btn" data-reply="Tu solicitud ha sido atendida y solucionada. Procedemos a cerrar este ticket. ¡Gracias por contactar a Sistemas!">Cierre Estándar</button>
-                                </div>
-                                @endif
-
                                 <div class="mb-3">
                                     <textarea id="adminBodyTextarea" name="body" class="form-control bg-light border-0" rows="5"
                                         placeholder="Escribe aquí la solución, avances o requerimientos..."></textarea>
@@ -200,16 +190,7 @@
                                 <input type="hidden" name="new_status" value="{{ $ticket->status }}">
 
                                 <div
-                                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-3 pt-3 border-top gap-3">
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" name="private" id="privateNote"
-                                            value="1" role="switch">
-                                        <label class="form-check-label text-muted fw-bold small" for="privateNote"
-                                            style="color: #e74c3c !important;">
-                                            Hacer Nota Privada (Oculta para el usuario)
-                                        </label>
-                                    </div>
-
+                                    class="d-flex flex-column flex-md-row justify-content-end align-items-md-center mt-3 pt-3 border-top gap-3">
                                     <button type="submit" class="btn text-white fw-bold shadow-sm px-4 py-2"
                                         style="background-color: #61b0a5; border-radius: 8px;">
                                         <i class="fas fa-paper-plane me-2"></i> Enviar Comentario
@@ -376,23 +357,6 @@
                     }
                 });
             }
-
-            // Lógica para Plantillas Rápidas
-            document.querySelectorAll('.quick-reply-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const replyText = this.getAttribute('data-reply');
-                    const textarea = document.getElementById('adminBodyTextarea');
-                    
-                    if (window.tinymce && tinymce.get('adminBodyTextarea')) {
-                        // Si TinyMCE está activo
-                        let currentContent = tinymce.get('adminBodyTextarea').getContent();
-                        tinymce.get('adminBodyTextarea').setContent(currentContent + '<p>' + replyText + '</p>');
-                    } else {
-                        // Si es un textarea normal
-                        textarea.value += (textarea.value ? '\n\n' : '') + replyText;
-                    }
-                });
-            });
 
             document.addEventListener('paste', function(e) {
                 // Si están pegando dentro de TinyMCE, ignoramos esto para no estorbar al editor

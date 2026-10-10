@@ -73,8 +73,8 @@
             Ajustes de TI
         </h6>
         <li class="nav-item mb-1">
-            <a class="nav-link text-white d-flex align-items-center" href="#">
-                <i class="fas fa-users me-3 w-20px"></i> Personal
+            <a class="nav-link text-white d-flex align-items-center" href="{{ route('users.index') }}">
+                <i class="fas fa-users me-3 w-20px"></i> Directorio Usuarios
             </a>
         </li>
     @endif

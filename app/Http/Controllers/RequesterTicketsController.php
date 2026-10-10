@@ -18,23 +18,6 @@ class RequesterTicketsController extends Controller
         return view('cliente.tickets.show', ['ticket' => $ticket]);
     }
 
-    public function rate($id)
-    {
-        // Misma validación de seguridad para la calificación
-        $ticket = Ticket::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
-        $rated  = $ticket->rate(request('rating'));
-
-        if (! $rated) {
-            app()->abort(\Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY, 'No se pudo calificar este ticket');
-        }
-
-        return back();
-    }
-
-
     public function index()
     {
         // Consultamos con relaciones necesarias

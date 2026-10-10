@@ -19,7 +19,7 @@ class TicketsController extends Controller
     public function index(Request $request)
     {
         // 1. Iniciamos la consulta base (siempre trayendo relaciones para evitar consultas N+1)
-        $query = Ticket::with(['user', 'team'])->latest('updated_at');
+        $query = Ticket::with(['user'])->latest('updated_at');
 
         // 2. Búsqueda rápida (Asunto o ID)
         if ($request->filled('search')) {
@@ -91,7 +91,10 @@ class TicketsController extends Controller
         // Validamos que venga la descripción obligatoria y archivos seguros
         $request->validate([
             'body'          => 'required|string',
-            'attachments.*' => 'nullable|file|max:15360|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx,txt,zip,rar,7z',
+            'attachments.*' => 'nullable|file|max:15360|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx,txt,zip,rar,7z,mp4,csv,xml',
+        ], [
+            'attachments.*.mimes' => 'Tipo de archivo no permitido. Solo se aceptan imágenes, PDFs, Word, Excel, ZIP y Videos.',
+            'attachments.*.max' => 'El archivo no debe pesar más de 15MB.'
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -133,12 +136,51 @@ class TicketsController extends Controller
             }
 
             // 📧 Notificación de Confirmación de Recepción
-            try {
-                $mensajeCorreo = "Hemos recibido tu solicitud de soporte exitosamente. Tu ticket ha entrado a nuestra bandeja general y pronto un especialista de TI lo revisará.";
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TicketNotification($ticket, 'Ticket Recibido Exitosamente', $mensajeCorreo));
+            if (env('EMAIL_ENABLED', true)) {
+                try {
+                    $mensajeCorreo = "Hemos recibido tu solicitud de soporte exitosamente. Tu ticket ha entrado a nuestra bandeja general y pronto un especialista de TI lo revisará.";
+                
+                $htmlBody = (new \App\Mail\TicketNotification($ticket, 'Ticket Recibido Exitosamente', $mensajeCorreo))->render();
+                
+                $tenantId = env('M365_TENANT_ID');
+                $clientId = env('M365_CLIENT_ID');
+                $clientSecret = env('M365_CLIENT_SECRET');
+                $mailbox = env('EMAIL_FROM', 'sistemas@ragon.com.mx');
+                
+                if ($tenantId && $clientId && $clientSecret) {
+                    $tokenResponse = \Illuminate\Support\Facades\Http::asForm()->post("https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token", [
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                        'scope' => 'https://graph.microsoft.com/.default',
+                        'grant_type' => 'client_credentials',
+                    ]);
+                    
+                    if ($tokenResponse->successful()) {
+                        $token = $tokenResponse->json('access_token');
+                        $toRecipients = [['emailAddress' => ['address' => $user->email]]];
+                        
+                        $mailPayload = [
+                            'message' => [
+                                'subject' => "[TK-" . str_pad($ticket->id, 4, '0', STR_PAD_LEFT) . "] Ticket Recibido Exitosamente",
+                                'body' => [
+                                    'contentType' => 'HTML',
+                                    'content' => $htmlBody
+                                ],
+                                'toRecipients' => $toRecipients,
+                            ],
+                            'saveToSentItems' => 'false'
+                        ];
+                        
+                        \Illuminate\Support\Facades\Http::withToken($token)
+                            ->post("https://graph.microsoft.com/v1.0/users/{$mailbox}/sendMail", $mailPayload);
+                    }
+                } else {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TicketNotification($ticket, 'Ticket Recibido Exitosamente', $mensajeCorreo));
+                }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Error enviando correo de nuevo ticket: ' . $e->getMessage());
             }
+        }
 
             // 📡 Disparar evento WebSocket para notificar a TI
             event(new \App\Events\TicketUpdated($ticket));
@@ -218,22 +260,89 @@ class TicketsController extends Controller
         ]);
 
         // 4. Disparamos evento de WebSockets para actualizar pantallas de otros agentes
-        event(new \App\Events\TicketUpdated($ticket));
+        
 
         // 5. Enviar notificación por correo si cambió el estado
-        if (in_array("Estado (" . $ticket->statusName() . ")", $changes)) {
+        if (env('EMAIL_ENABLED', true) && in_array("Estado (" . $ticket->statusName() . ")", $changes)) {
             $mensajeCorreo = "El estado de tu ticket ha sido actualizado a: **" . $ticket->statusName() . "**.";
             if ($ticket->status == 3) {
                 $mensajeCorreo .= "\n\n⚠️ **Importante:** Sistemas necesita más información de tu parte para continuar trabajando en tu solicitud. Por favor, haz clic en el botón de abajo para responder.";
             }
             try {
-                \Illuminate\Support\Facades\Mail::to($ticket->user->email)->send(new \App\Mail\TicketNotification($ticket, 'Actualización de Estado', $mensajeCorreo));
+                // Renderear el HTML usando la clase Mailable y el motor de Blade
+                $htmlBody = (new \App\Mail\TicketNotification($ticket, 'Actualización de Estado', $mensajeCorreo))->render();
+                
+                $tenantId = env('M365_TENANT_ID');
+                $clientId = env('M365_CLIENT_ID');
+                $clientSecret = env('M365_CLIENT_SECRET');
+                $mailbox = env('EMAIL_FROM', 'sistemas@ragon.com.mx');
+                
+                if ($tenantId && $clientId && $clientSecret) {
+                    // Obtener Token de Acceso (Graph API)
+                    $tokenResponse = \Illuminate\Support\Facades\Http::asForm()->post("https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token", [
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                        'scope' => 'https://graph.microsoft.com/.default',
+                        'grant_type' => 'client_credentials',
+                    ]);
+                    
+                    if ($tokenResponse->successful()) {
+                        $token = $tokenResponse->json('access_token');
+                        
+                        // Armar Destinatarios
+                        $toRecipients = [['emailAddress' => ['address' => $ticket->user->email]]];
+                        
+                        $ccRecipients = [];
+                        if (!empty($ticket->email_cc)) {
+                            $ccList = explode(',', $ticket->email_cc);
+                            foreach ($ccList as $ccEmail) {
+                                if (trim($ccEmail)) {
+                                    $ccRecipients[] = ['emailAddress' => ['address' => trim($ccEmail)]];
+                                }
+                            }
+                        }
+                        
+                        $bccRecipients = [];
+                        if (env('EMAIL_BCC')) {
+                            $bccList = explode(',', env('EMAIL_BCC'));
+                            foreach ($bccList as $bccEmail) {
+                                if (trim($bccEmail)) {
+                                    $bccRecipients[] = ['emailAddress' => ['address' => trim($bccEmail)]];
+                                }
+                            }
+                        }
+
+                        // Configurar Mensaje
+                        $mailPayload = [
+                            'message' => [
+                                'subject' => "[TK-" . str_pad($ticket->id, 4, '0', STR_PAD_LEFT) . "] Actualización de Estado",
+                                'body' => [
+                                    'contentType' => 'HTML',
+                                    'content' => $htmlBody
+                                ],
+                                'toRecipients' => $toRecipients,
+                                'ccRecipients' => $ccRecipients,
+                                'bccRecipients' => $bccRecipients,
+                            ],
+                            'saveToSentItems' => 'false' // o true si quieren guardarlo
+                        ];
+                        
+                        // Si era respuesta a un hilo, usamos In-Reply-To si tuviéramos el header.
+                        // Para ahora, simplemente lo mandamos
+                        
+                        \Illuminate\Support\Facades\Http::withToken($token)
+                            ->post("https://graph.microsoft.com/v1.0/users/{$mailbox}/sendMail", $mailPayload);
+                    }
+                } else {
+                    // Fallback a SMTP (mail normal) si no hay credenciales de Graph
+                    \Illuminate\Support\Facades\Mail::to($ticket->user->email)->send(new \App\Mail\TicketNotification($ticket, 'Actualización de Estado', $mensajeCorreo));
+                }
             } catch (\Exception $e) {
-                // Loguear error de correo, pero no detener la petición
                 \Illuminate\Support\Facades\Log::error('Error enviando correo de ticket: ' . $e->getMessage());
             }
         }
 
+        event(new \App\Events\TicketUpdated($ticket));
         return back()->with('success', '¡El ticket ha sido actualizado y asignado!');
     }
 
@@ -257,5 +366,15 @@ class TicketsController extends Controller
         }
 
         return view('cliente.tickets.formulario');
+    }
+
+    /**
+     * Elimina el ticket permanentemente (Solo Super Admins)
+     */
+    public function destroy(Ticket $ticket)
+    {
+        $this->authorize('delete', $ticket);
+        $ticket->delete();
+        return redirect()->route('tickets.index')->with('success', 'El ticket fue eliminado permanentemente del sistema.');
     }
 }

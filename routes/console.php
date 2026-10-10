@@ -22,3 +22,6 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('sync:m365-users')->dailyAt('02:00');
 // Programar la lectura de correos IMAP cada minuto
 Schedule::command('tickets:parse-emails')->everyMinute();
+
+// Recordatorios diarios de devolucion de laptop Home Office
+Schedule::command('home-office:send-reminders')->dailyAt('08:00');

@@ -245,9 +245,7 @@
                                             }
                                         @endphp
                                         
-                                        @if($isOverdue)
-                                            <span class="badge bg-danger mt-1 shadow-sm" style="font-size: 0.7rem;"><i class="fas fa-fire-alt me-1"></i>SLA Atrasado (>48h)</span>
-                                        @endif
+
                                     </div>
                                 </td>
 
@@ -348,3 +346,50 @@
         }
     </style>
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        function updateTableSilently() {
+            // 1. Mostrar la notificación visual SIEMPRE que se reciba el evento
+            let toast = document.createElement('div');
+            toast.className = 'alert alert-info fade show position-fixed bottom-0 end-0 m-4 shadow-lg';
+            toast.style.zIndex = 1050;
+            toast.style.borderLeft = '5px solid #61b0a5';
+            toast.style.backgroundColor = '#ffffff';
+            toast.style.color = '#333';
+            toast.innerHTML = '<i class="fas fa-sync-alt fa-spin me-2" style="color: #61b0a5;"></i> <strong>Bandeja Actualizada</strong><br><small>Han llegado nuevos tickets o comentarios.</small>';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+
+            // 2. Fetch de la tabla sin caché
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }, cache: 'no-store' })
+                .then(r => r.text())
+                .then(html => {
+                    let temp = document.createElement('html');
+                    temp.innerHTML = html;
+                    let newTable = temp.querySelector('tbody').innerHTML;
+                    document.querySelector('tbody').innerHTML = newTable;
+                });
+        }
+
+        if (window.Echo) {
+            window.Echo.channel('tickets')
+                .listen('.TicketUpdated', (e) => {
+                    updateTableSilently();
+                });
+        }
+    });
+</script>
+
+
+
+
+
+
+
+

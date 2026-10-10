@@ -11,16 +11,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RequesterTicketsController;
 use App\Http\Controllers\RequesterCommentsController;
 
-use App\Http\Controllers\TicketsSearchController;
 use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\CommentsController;
-use App\Http\Controllers\RequestersController;
 use App\Http\Controllers\AttachmentsController;
-use App\Http\Controllers\TeamsController;
-use App\Http\Controllers\TeamAgentsController;
-use App\Http\Controllers\TeamMembershipController;
 use App\Http\Controllers\UsersController;
-use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ReportsController;
 
 Route::redirect('/', '/login');
@@ -53,6 +47,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('contrasena', [ProfileController::class, 'password'])->name('profile.password');
 
+    // Forzar cambio de contraseña
+    Route::get('cambiar-contrasena', [ProfileController::class, 'forcePasswordForm'])->name('password.force-change')->withoutMiddleware([\App\Http\Middleware\ForcePasswordChange::class]);
+    Route::post('cambiar-contrasena', [ProfileController::class, 'forcePasswordUpdate'])->name('password.force-update')->withoutMiddleware([\App\Http\Middleware\ForcePasswordChange::class]);
+
     Route::get('mis-tickets', [RequesterTicketsController::class, 'index'])->name('cliente.tickets.index');
 
     Route::group(['prefix' => 'cliente'], function () {
@@ -61,7 +59,6 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::get('tickets/{ticket}', [RequesterTicketsController::class, 'show'])->name('cliente.tickets.show');
         Route::post('tickets/{ticket}/comentarios', [RequesterCommentsController::class, 'store'])->name('requester.comments.store');
-        Route::get('tickets/{ticket}/calificar', [RequesterTicketsController::class, 'rate'])->name('requester.tickets.rate');
         
         // Home Office Cliente
         Route::get('home-office', [\App\Http\Controllers\Cliente\HomeOfficeController::class, 'index'])->name('cliente.home-office.index');
@@ -85,30 +82,20 @@ Route::group(['middleware' => ['auth', \App\Http\Middleware\IsAdmin::class]], fu
         \Illuminate\Support\Facades\Artisan::call('sync:m365-users');
         return redirect()->back()->with('success', '¡Directorio de usuarios sincronizado con Microsoft 365!');
     })->name('admin.sync-users');
-
-    Route::get('tickets/buscar/{text}', [TicketsSearchController::class, 'index'])->name('tickets.search');
     
     // Le quitamos 'store' al resource porque ya lo declaramos arriba para todos
-    Route::resource('tickets', TicketsController::class)->except(['store', 'edit', 'destroy']);
+    Route::resource('tickets', TicketsController::class)->except(['store', 'edit']);
 
     Route::post('tickets/{ticket}/comentarios', [CommentsController::class, 'store'])->name('tickets.comments.store');
     Route::post('tickets/{ticket}/reabrir', [TicketsController::class, 'reopen'])->name('tickets.reopen');
 
-    Route::get('clientes', [RequestersController::class, 'index'])->name('requesters.index');
     Route::get('adjuntos/{filename}', [AttachmentsController::class, 'show'])->name('attachments');
 
-    Route::resource('equipos', TeamsController::class)->names('teams');
-    Route::get('equipos/{team}/agentes', [TeamAgentsController::class, 'index'])->name('teams.agents');
-    Route::get('equipos/{token}/unirse', [TeamMembershipController::class, 'index'])->name('membership.index');
-    Route::post('equipos/{token}/unirse', [TeamMembershipController::class, 'store'])->name('membership.store');
-    Route::get('equipos-eliminar/{data}', [TeamsController::class, 'delete'])->name('teams.delete');
-
-    Route::resource('usuarios', UsersController::class)->only(['index', 'destroy', 'create'])->names('users');
+    Route::resource('usuarios', UsersController::class)->parameters(['usuarios' => 'user'])->only(['index', 'destroy', 'create', 'edit', 'update'])->names('users');
     Route::post('usuarios/guardar', [UsersController::class, 'store'])->name('user.store');
+    Route::post('usuarios/{user}/reset-password', [UsersController::class, 'resetPasswordToDefault'])->name('users.reset-password');
     Route::get('usuarios/{user}/suplantar', [UsersController::class, 'impersonate'])->name('users.impersonate');
-    Route::resource('configuracion', SettingsController::class)->only(['edit', 'update'])->names('settings');
 
-    Route::get('reportes', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('estadisticas', [ReportsController::class, 'analytics'])->name('reports.analytics');
     
     // Home Office y Control de Equipos - Admin
